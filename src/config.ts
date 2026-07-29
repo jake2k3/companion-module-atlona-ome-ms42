@@ -3,6 +3,8 @@ import { Regex, type SomeCompanionConfigField } from '@companion-module/base'
 export type ModuleConfig = {
 	host: string
 	port: number
+	username: string
+	password: string
 }
 
 export function GetConfigFields(): SomeCompanionConfigField[] {
@@ -17,11 +19,24 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 		{
 			type: 'number',
 			id: 'port',
-			label: 'Target Port',
+			label: 'Telnet Port',
 			width: 4,
 			min: 1,
 			max: 65535,
-			default: 8000,
+			default: 23,
+		},
+		{
+			type: 'textinput', 
+			id: 'username',
+			label: 'Username',
+			width: 6,
+			default: 'admin'
+		},
+		{
+			type: 'textinput',
+			id: 'password',
+			label: 'Password',
+			width: 6,
 		},
 	]
 }
