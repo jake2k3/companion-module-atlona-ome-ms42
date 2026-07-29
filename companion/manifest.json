@@ -1,18 +1,18 @@
 {
 	"$schema": "../node_modules/@companion-module/base/assets/manifest.schema.json",
 	"type": "connection",
-	"id": "your-module-name",
-	"name": "your-module-name",
-	"shortname": "module-shortname",
-	"description": "A short one line description of your module",
+	"id": "companion-module-atlona-ome-ms42",
+	"name": "companion-module-atlona-ome-ms42",
+	"shortname": "omems42",
+	"description": "Atlona Omega Matrix Switchers",
 	"version": "0.0.0",
 	"license": "MIT",
-	"repository": "git+https://github.com/bitfocus/companion-module-your-module-name.git",
-	"bugs": "https://github.com/bitfocus/companion-module-your-module-name/issues",
+	"repository": "git+https://github.com/jake2k3/companion-module-atlona-ome-ms42.git",
+	"bugs": "https://github.com/jake2k3/companion-module-atlona-ome-ms42/issues",
 	"maintainers": [
 		{
-			"name": "Your name",
-			"email": "Your email"
+			"name": "Jacob Chapman",
+			"email": "jacob@chapmansound.com"
 		}
 	],
 	"runtime": {
@@ -22,7 +22,7 @@
 		"entrypoint": "../dist/main.js"
 	},
 	"legacyIds": [],
-	"manufacturer": "Your company",
-	"products": ["Your product"],
+	"manufacturer": "Atlona",
+	"products": ["OME-MS42"],
 	"keywords": []
 }
