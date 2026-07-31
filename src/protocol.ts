@@ -1,7 +1,6 @@
 import {
         InstanceStatus,
       	TelnetHelper,
-      	type InstanceBase,
 } from '@companion-module/base'
 
 import type { ModuleConfig } from './config.js'
@@ -14,7 +13,7 @@ interface Logger {
 export class AtlonaProtocol {
         private socket: TelnetHelper | undefined
         private receiveBuffer = ''
-        private authenticated = false
+        private this.authenticated = false
 
 	public constructor(
     		private readonly instance: Logger,

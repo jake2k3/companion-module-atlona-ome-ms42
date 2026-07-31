@@ -9,7 +9,7 @@ export function UpdateActions(self: ModuleInstance): void {
 		get_power_status: {
 			name: 'Get Power Status',
 			options: [],
-			callback: async (event) => {
+			callback: async () => {
 				try {
 					self.log('info', 'Querying device for power status (PWSTAT)')
 					self.sendCommand('PWSTAT')

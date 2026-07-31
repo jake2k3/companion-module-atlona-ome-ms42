@@ -1,0 +1,35 @@
+import { Regex } from '@companion-module/base';
+export function GetConfigFields() {
+    return [
+        {
+            type: 'textinput',
+            id: 'host',
+            label: 'Target IP',
+            width: 8,
+            regex: Regex.IP,
+        },
+        {
+            type: 'number',
+            id: 'port',
+            label: 'Telnet Port',
+            width: 4,
+            min: 1,
+            max: 65535,
+            default: 23,
+        },
+        {
+            type: 'textinput',
+            id: 'username',
+            label: 'Username',
+            width: 6,
+            default: 'admin'
+        },
+        {
+            type: 'textinput',
+            id: 'password',
+            label: 'Password',
+            width: 6,
+        },
+    ];
+}
+//# sourceMappingURL=config.js.map
