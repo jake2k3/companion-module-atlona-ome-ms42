@@ -22,7 +22,7 @@ export class AtlonaProtocol {
 
 	public connect(): void {
 		this.destroy()
-
+		
 		this.instance.updateStatus(InstanceStatus.Connecting)
 
 		this.socket = new TelnetHelper(this.config.host, this.config.port)
@@ -109,7 +109,8 @@ export class AtlonaProtocol {
 			return
 		}
 
-    if (line === 'Welcome to TELNET.') {
+    if (line.includes('Welcome to TELNET.')) {
+			this.instance.log('info', 'Authentication successful')
 			this.authenticated = true
 			this.instance.updateStatus(InstanceStatus.Ok)
 			return
