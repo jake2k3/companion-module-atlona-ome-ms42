@@ -103,10 +103,32 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 
 	private handleData(data: Buffer): void {
 		const chunk = data.toString('utf8')
-		this.log('debug', `Received: ${JSON.stringify(chunk)}`)
 		this.receiveBuffer += chunk
-
-		// ADD MS42 LOGIN PROMPT HANDLING AND RESPONSE PARSE HERE //
+	
+		const lines = this.receiveBuffer.split(/\r?\n/)
+		this.receiveBuffer = lines.pop() ?? ''
+	
+		for (const rawLine of lines) {
+			const line = rawLine.trim()
+	
+			this.log('debug', `RX: [${line}]`)
+	
+			if (line.includes('Username:')) {
+				this.sendCommand(this.config.username)
+				continue
+			}
+	
+			if (line.includes('Password:')) {
+				this.sendCommand(this.config.password)
+				continue
+			}
+	
+			if (line === 'Welcome to TELNET.') {
+				this.updateStatus(InstanceStatus.Ok)
+				this.log('info', 'Authenticated successfully')
+				continue
+			}
+		}
 	}
 
 	sendCommand(command: string): void {

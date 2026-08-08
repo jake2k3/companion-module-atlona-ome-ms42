@@ -1,7 +1,7 @@
 import type ModuleInstance from './main.js'
 
 export type ActionsSchema = {
-	get_power_status: {}
+	get_power_status: { options: {} }
 }
 
 export function UpdateActions(self: ModuleInstance): void {
@@ -9,7 +9,7 @@ export function UpdateActions(self: ModuleInstance): void {
 		get_power_status: {
 			name: 'Get Power Status',
 			options: [],
-			callback: async (event) => {
+			callback: async () => {
 				try {
 					self.log('info', 'Querying device for power status (PWSTAT)')
 					self.sendCommand('PWSTAT')
