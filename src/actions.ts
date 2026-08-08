@@ -1,7 +1,7 @@
 import type ModuleInstance from './main.js'
 
 export type ActionsSchema = {
-	get_power_status: {}
+	get_power_status: { options: {} }
 }
 
 export function UpdateActions(self: ModuleInstance): void {

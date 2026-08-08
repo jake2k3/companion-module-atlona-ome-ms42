@@ -13,7 +13,6 @@ interface Logger {
 export class AtlonaProtocol {
         private socket: TelnetHelper | undefined
         private receiveBuffer = ''
-        private this.authenticated = false
 
 	public constructor(
     		private readonly instance: Logger,
@@ -30,7 +29,6 @@ export class AtlonaProtocol {
 		this.socket.on('connect', () => {
 			this.instance.log('info', 'Connected to OME-MS42')
 			this.receiveBuffer = ''
-			this.authenticated = false
 		})
 
 		this.socket.on('data', (data: Buffer) => {
@@ -69,7 +67,6 @@ export class AtlonaProtocol {
 		this.socket?.destroy()
 		this.socket = undefined
 		this.receiveBuffer = ''
-		this.authenticated = false
 	}
 
 	private handleData(chunk: string): void {
@@ -111,9 +108,7 @@ export class AtlonaProtocol {
 
     if (line.includes('Welcome to TELNET.')) {
 			this.instance.log('info', 'Authentication successful')
-			this.authenticated = true
-			this.instance.updateStatus(InstanceStatus.Ok)
-			return
+
 		}
 
 		this.instance.log('debug', `OME-MS42 response: ${line}`)

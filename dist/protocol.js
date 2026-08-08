@@ -4,7 +4,6 @@ export class AtlonaProtocol {
     config;
     socket;
     receiveBuffer = '';
-    authenticated = false;
     constructor(instance, config) {
         this.instance = instance;
         this.config = config;
@@ -16,7 +15,6 @@ export class AtlonaProtocol {
         this.socket.on('connect', () => {
             this.instance.log('info', 'Connected to OME-MS42');
             this.receiveBuffer = '';
-            this.authenticated = false;
         });
         this.socket.on('data', (data) => {
             this.handleData(data.toString('utf8'));
@@ -42,7 +40,6 @@ export class AtlonaProtocol {
         this.socket?.destroy();
         this.socket = undefined;
         this.receiveBuffer = '';
-        this.authenticated = false;
     }
     handleData(chunk) {
         this.receiveBuffer += chunk;
@@ -69,10 +66,8 @@ export class AtlonaProtocol {
         if (!line) {
             return;
         }
-        if (line === 'Welcome to TELNET.') {
-            this.authenticated = true;
-            this.instance.updateStatus(InstanceStatus.Ok);
-            return;
+        if (line.includes('Welcome to TELNET.')) {
+            this.instance.log('info', 'Authentication successful');
         }
         this.instance.log('debug', `OME-MS42 response: ${line}`);
     }
