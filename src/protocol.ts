@@ -1,27 +1,24 @@
-import {
-        InstanceStatus,
-      	TelnetHelper,
-} from '@companion-module/base'
+import { InstanceStatus, TelnetHelper } from '@companion-module/base'
 
 import type { ModuleConfig } from './config.js'
 
 interface Logger {
-        log(level: 'debug' | 'info' | 'warn' | 'error', message: string): void
-        updateStatus(status: InstanceStatus, message?: string): void
+	log(level: 'debug' | 'info' | 'warn' | 'error', message: string): void
+	updateStatus(status: InstanceStatus, message?: string): void
 }
 
 export class AtlonaProtocol {
-        private socket: TelnetHelper | undefined
-        private receiveBuffer = ''
+	private socket: TelnetHelper | undefined
+	private receiveBuffer = ''
 
 	public constructor(
-    		private readonly instance: Logger,
-    		private readonly config: ModuleConfig,
+		private readonly instance: Logger,
+		private readonly config: ModuleConfig,
 	) {}
 
 	public connect(): void {
 		this.destroy()
-		
+
 		this.instance.updateStatus(InstanceStatus.Connecting)
 
 		this.socket = new TelnetHelper(this.config.host, this.config.port)
@@ -37,17 +34,11 @@ export class AtlonaProtocol {
 
 		this.socket.on('error', (error) => {
 			this.instance.log('error', `Telnet error: ${error.message}`)
-			this.instance.updateStatus(
-				InstanceStatus.ConnectionFailure,
-				error.message,
-			)
+			this.instance.updateStatus(InstanceStatus.ConnectionFailure, error.message)
 		})
 
 		this.socket.on('end', () => {
-			this.instance.updateStatus(
-				InstanceStatus.Disconnected,
-				'Connection closed',
-			)
+			this.instance.updateStatus(InstanceStatus.Disconnected, 'Connection closed')
 		})
 	}
 
@@ -72,10 +63,7 @@ export class AtlonaProtocol {
 	private handleData(chunk: string): void {
 		this.receiveBuffer += chunk
 
-		this.instance.log(
-			'debug',
-			`Received: ${JSON.stringify(chunk)}`,
-		)
+		this.instance.log('debug', `Received: ${JSON.stringify(chunk)}`)
 
 		this.handleLoginPrompts()
 
@@ -88,7 +76,6 @@ export class AtlonaProtocol {
 	}
 
 	private handleLoginPrompts(): void {
-    
 		if (this.receiveBuffer.includes('Username:')) {
 			this.socket?.send(`${this.config.username}\r`)
 			this.receiveBuffer = ''
@@ -106,9 +93,8 @@ export class AtlonaProtocol {
 			return
 		}
 
-    if (line.includes('Welcome to TELNET.')) {
+		if (line.includes('Welcome to TELNET.')) {
 			this.instance.log('info', 'Authentication successful')
-
 		}
 
 		this.instance.log('debug', `OME-MS42 response: ${line}`)
