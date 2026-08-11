@@ -10,6 +10,7 @@ export default class ModuleInstance extends InstanceBase {
     config; // Setup in init()
     telnet;
     receiveBuffer = '';
+    pendingLineWaiters = [];
     constructor(internal) {
         super(internal);
     }
@@ -63,6 +64,34 @@ export default class ModuleInstance extends InstanceBase {
         this.telnet?.destroy();
         this.telnet = undefined;
         this.receiveBuffer = '';
+        for (const waiter of this.pendingLineWaiters) {
+            clearTimeout(waiter.timer);
+            waiter.reject(new Error('Connection closed while waiting for a response line'));
+        }
+        this.pendingLineWaiters = [];
+    }
+    waitForLine(regex, timeoutMs) {
+        return new Promise((resolve, reject) => {
+            const timer = setTimeout(() => {
+                this.pendingLineWaiters = this.pendingLineWaiters.filter((waiter) => waiter !== pendingWaiter);
+                reject(new Error(`Timed out waiting for line matching ${regex}`));
+            }, timeoutMs);
+            const pendingWaiter = {
+                regex,
+                resolve: (line) => {
+                    clearTimeout(timer);
+                    this.pendingLineWaiters = this.pendingLineWaiters.filter((waiter) => waiter !== pendingWaiter);
+                    resolve(line);
+                },
+                reject: (error) => {
+                    clearTimeout(timer);
+                    this.pendingLineWaiters = this.pendingLineWaiters.filter((waiter) => waiter !== pendingWaiter);
+                    reject(error);
+                },
+                timer,
+            };
+            this.pendingLineWaiters.push(pendingWaiter);
+        });
     }
     handleData(data) {
         const chunk = data.toString('utf8');
@@ -72,6 +101,11 @@ export default class ModuleInstance extends InstanceBase {
         for (const rawLine of lines) {
             const line = rawLine.trim();
             this.log('debug', `RX: [${line}]`);
+            const matchingWaiter = this.pendingLineWaiters.find((waiter) => waiter.regex.test(line));
+            if (matchingWaiter) {
+                matchingWaiter.resolve(line);
+                continue;
+            }
             if (line.includes('Username:')) {
                 this.sendCommand(this.config.username);
                 continue;

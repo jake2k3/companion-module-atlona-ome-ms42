@@ -16,12 +16,20 @@ export type ModuleSchema = {
 
 export { UpgradeScripts }
 
+type PendingLineWaiter = {
+	regex: RegExp
+	resolve: (line: string) => void
+	reject: (error: Error) => void
+	timer: NodeJS.Timeout
+}
+
 export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 	config!: ModuleConfig // Setup in init()
 
 	private telnet: TelnetHelper | undefined
 	private receiveBuffer = ''
-	
+	private pendingLineWaiters: PendingLineWaiter[] = []
+
 	constructor(internal: unknown) {
 		super(internal)
 	}
@@ -34,7 +42,7 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 		this.updateVariableDefinitions() // export variable definitions
 		this.initConnection()
 	}
-	
+
 	// When module gets deleted
 	async destroy(): Promise<void> {
 		this.destroyConnection()
@@ -54,75 +62,99 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 
 	private initConnection(): void {
 		this.destroyConnection()
-		if (!this.config.host) {	
-				this.updateStatus(
-					InstanceStatus.BadConfig,
-					'Target IP is required'
-				)
+		if (!this.config.host) {
+			this.updateStatus(InstanceStatus.BadConfig, 'Target IP is required')
 			return
 		}
 		this.updateStatus(InstanceStatus.Connecting)
-		this.telnet = new TelnetHelper(
-			this.config.host,
-			this.config.port,
+		this.log(
+			'info',
+			`Attempting initial Telnet connection to ${this.config.host}:${this.config.port} with build 2026-08-11`,
 		)
+		this.telnet = new TelnetHelper(this.config.host, this.config.port)
 		this.telnet.on('connect', () => {
-			this.log(
-				'info',
-				`Connected to OME-MS42 at ${this.config.host}:${this.config.port}`,
-				)
+			this.updateStatus(InstanceStatus.Ok, 'Connected to OME-MS42')
+			this.log('info', `Connected to OME-MS42 at ${this.config.host}:${this.config.port}`)
 			this.receiveBuffer = ''
-		} )
+		})
 		this.telnet.on('data', (data: Buffer) => {
-				this.handleData(data)
-		} )
+			this.handleData(data)
+		})
 		this.telnet.on('error', (error) => {
-				this.log(
-					'error',
-					`Connection error: ${error.message}`,
-				)
-				this.updateStatus(
-					InstanceStatus.ConnectionFailure,
-					error.message,
-				)
-		} )
+			this.log('error', `Connection error: ${error.message}`)
+			this.updateStatus(InstanceStatus.ConnectionFailure, error.message)
+		})
 		this.telnet.on('end', () => {
-				this.log('info', 'Connection to OME-MS42 closed')
-				this.updateStatus(
-						InstanceStatus.Disconnected,
-						'Connection closed',
-				)
-		} )
+			this.log('info', 'Connection to OME-MS42 closed')
+			this.updateStatus(InstanceStatus.Disconnected, 'Connection closed')
+		})
 	}
 
 	private destroyConnection(): void {
-			this.telnet?.destroy()
-			this.telnet = undefined
-			this.receiveBuffer = ''
+		this.telnet?.destroy()
+		this.telnet = undefined
+		this.receiveBuffer = ''
+		for (const waiter of this.pendingLineWaiters) {
+			clearTimeout(waiter.timer)
+			waiter.reject(new Error('Connection closed while waiting for a response line'))
+		}
+		this.pendingLineWaiters = []
+	}
+
+	async waitForLine(regex: RegExp, timeoutMs: number): Promise<string> {
+		return new Promise((resolve, reject) => {
+			const timer = setTimeout(() => {
+				this.pendingLineWaiters = this.pendingLineWaiters.filter((waiter) => waiter !== pendingWaiter)
+				reject(new Error(`Timed out waiting for line matching ${regex}`))
+			}, timeoutMs)
+
+			const pendingWaiter: PendingLineWaiter = {
+				regex,
+				resolve: (line) => {
+					clearTimeout(timer)
+					this.pendingLineWaiters = this.pendingLineWaiters.filter((waiter) => waiter !== pendingWaiter)
+					resolve(line)
+				},
+				reject: (error) => {
+					clearTimeout(timer)
+					this.pendingLineWaiters = this.pendingLineWaiters.filter((waiter) => waiter !== pendingWaiter)
+					reject(error)
+				},
+				timer,
+			}
+
+			this.pendingLineWaiters.push(pendingWaiter)
+		})
 	}
 
 	private handleData(data: Buffer): void {
 		const chunk = data.toString('utf8')
 		this.receiveBuffer += chunk
-	
+
 		const lines = this.receiveBuffer.split(/\r?\n/)
 		this.receiveBuffer = lines.pop() ?? ''
-	
+
 		for (const rawLine of lines) {
 			const line = rawLine.trim()
-	
+
 			this.log('debug', `RX: [${line}]`)
-	
+
+			const matchingWaiter = this.pendingLineWaiters.find((waiter) => waiter.regex.test(line))
+			if (matchingWaiter) {
+				matchingWaiter.resolve(line)
+				continue
+			}
+
 			if (line.includes('Username:')) {
 				this.sendCommand(this.config.username)
 				continue
 			}
-	
+
 			if (line.includes('Password:')) {
 				this.sendCommand(this.config.password)
 				continue
 			}
-	
+
 			if (line === 'Welcome to TELNET.') {
 				this.updateStatus(InstanceStatus.Ok)
 				this.log('info', 'Authenticated successfully')
@@ -133,10 +165,7 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 
 	sendCommand(command: string): void {
 		if (!this.telnet?.isConnected) {
-			this.log(
-				'warn',
-				`Cannot send command while disconnected: ${command}`,
-			)
+			this.log('warn', `Cannot send command while disconnected: ${command}`)
 			return
 		}
 		const cleanCommand = command.replace(/[\r\n]+$/g, '')
@@ -146,7 +175,7 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 		this.log('debug', `Sending command: ${cleanCommand}`)
 		this.telnet.send(`${cleanCommand}\r`)
 	}
-	
+
 	updateActions(): void {
 		UpdateActions(this)
 	}

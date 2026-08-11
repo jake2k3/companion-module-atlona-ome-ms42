@@ -1,4 +1,4 @@
-import { InstanceStatus, TelnetHelper, } from '@companion-module/base';
+import { InstanceStatus, TelnetHelper } from '@companion-module/base';
 export class AtlonaProtocol {
     instance;
     config;
