@@ -167,13 +167,13 @@ export function UpdateActions(self: ModuleInstance): void {
 			callback: async (action) => {
 				const mode = action.options.mode
 				if (mode === 'on') {
-					self.log('info', 'Enables analog audio output')
+					self.log('info', 'Analog audio output set to ON')
 					self.sendCommand('LRAUD on')
 					return
 				}
 
 				if (mode === 'off') {
-					self.log('info', 'Disables analog audio output')
+					self.log('info', 'Analog audio output set to OFF')
 					self.sendCommand('LRAUD off')
 					return
 				}
@@ -231,6 +231,6 @@ export function UpdateActions(self: ModuleInstance): void {
 					self.log('error', `Failed to unlock front panel buttons: ${err?.message ?? err}`)
 				}
 			},
-		},		
+		},
 	})
 }
