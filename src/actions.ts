@@ -2,6 +2,7 @@ import type ModuleInstance from './main.js'
 
 export type ActionsSchema = {
 	get_power_status: { options: {} }
+	blink_toggle: { options: {} }
 }
 
 export function UpdateActions(self: ModuleInstance): void {
@@ -14,7 +15,6 @@ export function UpdateActions(self: ModuleInstance): void {
 					self.log('info', 'Querying device for power status (PWSTA)')
 					self.sendCommand('PWSTA')
 
-					// Wait for a response line matching PWON or PWOFF, 1sec timeout
 					const line = await (self as any).waitForLine(/^(PWON|PWOFF)$/i, 1000)
 					const status = line.trim().toUpperCase()
 
@@ -30,5 +30,31 @@ export function UpdateActions(self: ModuleInstance): void {
 				}
 			},
 		},
+
+        blink_toggle: {
+            name: 'Blink',
+            options: [],
+            callback: async () => {
+                try {
+                    self.log('info', 'Querying device for blink status')
+                    self.sendCommand('Blink sta')')
+
+                    const line = await (self as any).waitForLine(/^(Blink on|Blink off)$/i, 1000)
+                    const status = line.trim().toUpperCase()
+
+                    if (status === 'Blink on') {
+                        self.log('info', 'Blink is ON, turning OFF')
+                        self.sendCommand('Blink off')
+                    } else if (status === 'Blink off') {
+                        self.log('info', 'Blink is OFF, turning ON')
+                        self.sendCommand('Blink on')
+                    } else {
+                        self.log('warn', `Unexpected blink response: ${line}`)
+                    }
+                } catch (err: any) {
+                    self.log('error', `Toggle failed: ${err?.message ?? err}`)
+                }
+            },
+        },
 	})
 }
