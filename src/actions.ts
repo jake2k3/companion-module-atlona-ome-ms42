@@ -2,7 +2,7 @@ import type ModuleInstance from './main.js'
 
 export type ActionsSchema = {
 	get_power_status: { options: {} }
-	blink_toggle: { options: {} }
+	blink: { options: { mode: 'on' | 'off' | 'toggle' } }
 }
 
 export function UpdateActions(self: ModuleInstance): void {
@@ -31,28 +31,49 @@ export function UpdateActions(self: ModuleInstance): void {
 			},
 		},
 
-		blink_toggle: {
+		blink: {
 			name: 'Blink',
-			options: [],
-			callback: async () => {
-				try {
-					self.log('info', 'Querying device for blink status')
-					self.sendCommand('Blink sta')
+			options: [
+				{
+					id: 'mode',
+					type: 'dropdown',
+					label: 'Mode',
+					default: 'toggle',
+					choices: [
+						{ id: 'on', label: 'On' },
+						{ id: 'off', label: 'Off' },
+						{ id: 'toggle', label: 'Toggle' },
+					],
+				},
+			],
+			callback: async (action) => {
+				const mode = action.options.mode
+				if (mode === 'on') {
+					self.log('info', 'Turning blink ON')
+					self.sendCommand('Blink on')
+					return
+				}
 
-					const line = await (self as any).waitForLine(/^(Blink on|Blink off)$/i, 1000)
-					const status = line.trim()
+				if (mode === 'off') {
+					self.log('info', 'Turning blink OFF')
+					self.sendCommand('Blink off')
+					return
+				}
 
-					if (status === 'Blink on') {
-						self.log('info', 'Blink is ON, turning OFF')
-						self.sendCommand('Blink off')
-					} else if (status === 'Blink off') {
-						self.log('info', 'Blink is OFF, turning ON')
-						self.sendCommand('Blink on')
-					} else {
-						self.log('warn', `Unexpected blink response: ${line}`)
-					}
-				} catch (err: any) {
-					self.log('error', `Toggle failed: ${err?.message ?? err}`)
+				self.log('info', 'Querying device for blink status')
+				self.sendCommand('Blink sta')
+
+				const line = await (self as any).waitForLine(/^(Blink on|Blink off)$/i, 5000)
+				const status = line.trim()
+
+				if (status === 'Blink on') {
+					self.log('info', 'Blink is ON, turning OFF')
+					self.sendCommand('Blink off')
+				} else if (status === 'Blink off') {
+					self.log('info', 'Blink is OFF, turning ON')
+					self.sendCommand('Blink on')
+				} else {
+					self.log('warn', `Unexpected blink response: ${line}`)
 				}
 			},
 		},
