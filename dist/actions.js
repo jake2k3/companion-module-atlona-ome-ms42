@@ -7,7 +7,6 @@ export function UpdateActions(self) {
                 try {
                     self.log('info', 'Querying device for power status (PWSTA)');
                     self.sendCommand('PWSTA');
-                    // Wait for a response line matching PWON or PWOFF, 1sec timeout
                     const line = await self.waitForLine(/^(PWON|PWOFF)$/i, 1000);
                     const status = line.trim().toUpperCase();
                     if (status === 'PWON') {
@@ -22,6 +21,32 @@ export function UpdateActions(self) {
                 }
                 catch (err) {
                     self.log('error', `Failed to retrieve power status: ${err?.message ?? err}`);
+                }
+            },
+        },
+        blink_toggle: {
+            name: 'Blink',
+            options: [],
+            callback: async () => {
+                try {
+                    self.log('info', 'Querying device for blink status');
+                    self.sendCommand('Blink sta');
+                    const line = await self.waitForLine(/^(Blink on|Blink off)$/i, 1000);
+                    const status = line.trim().toUpperCase();
+                    if (status === 'Blink on') {
+                        self.log('info', 'Blink is ON, turning OFF');
+                        self.sendCommand('Blink off');
+                    }
+                    else if (status === 'Blink off') {
+                        self.log('info', 'Blink is OFF, turning ON');
+                        self.sendCommand('Blink on');
+                    }
+                    else {
+                        self.log('warn', `Unexpected blink response: ${line}`);
+                    }
+                }
+                catch (err) {
+                    self.log('error', `Toggle failed: ${err?.message ?? err}`);
                 }
             },
         },
