@@ -32,7 +32,7 @@ export function UpdateActions(self) {
                     self.log('info', 'Querying device for blink status');
                     self.sendCommand('Blink sta');
                     const line = await self.waitForLine(/^(Blink on|Blink off)$/i, 1000);
-                    const status = line.trim().toUpperCase();
+                    const status = line.trim();
                     if (status === 'Blink on') {
                         self.log('info', 'Blink is ON, turning OFF');
                         self.sendCommand('Blink off');

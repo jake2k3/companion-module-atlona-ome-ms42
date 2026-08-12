@@ -40,7 +40,7 @@ export function UpdateActions(self: ModuleInstance): void {
 					self.sendCommand('Blink sta')
 
 					const line = await (self as any).waitForLine(/^(Blink on|Blink off)$/i, 1000)
-					const status = line.trim().toUpperCase()
+					const status = line.trim()
 
 					if (status === 'Blink on') {
 						self.log('info', 'Blink is ON, turning OFF')
