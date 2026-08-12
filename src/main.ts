@@ -70,7 +70,7 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 		this.updateStatus(InstanceStatus.Connecting)
 		this.log(
 			'info',
-			`Attempting initial Telnet connection to ${this.config.host}:${this.config.port} with build 2026-08-11`,
+			`Attempting initial Telnet connection to ${this.config.host}:${this.config.port} with build 2026-08-12`,
 		)
 		this.telnet = new TelnetHelper(this.config.host, this.config.port)
 		this.telnet.on('connect', () => {

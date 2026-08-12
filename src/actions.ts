@@ -11,8 +11,8 @@ export function UpdateActions(self: ModuleInstance): void {
 			options: [],
 			callback: async () => {
 				try {
-					self.log('info', 'Querying device for power status (PWSTAT)')
-					self.sendCommand('PWSTAT')
+					self.log('info', 'Querying device for power status (PWSTA)')
+					self.sendCommand('PWSTA')
 
 					// Wait for a response line matching PWON or PWOFF, 1sec timeout
 					const line = await (self as any).waitForLine(/^(PWON|PWOFF)$/i, 1000)
