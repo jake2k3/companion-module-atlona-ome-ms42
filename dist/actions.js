@@ -115,7 +115,50 @@ export function UpdateActions(self) {
                 }
             },
         },
-        get_power_status: {
+        lock: {
+            name: 'Front Panel Lock',
+            description: 'Locks the buttons on the front panel of the unit',
+            options: [],
+            callback: async () => {
+                try {
+                    self.sendCommand('Lock');
+                    self.log('info', 'Front panel buttons locked');
+                }
+                catch (err) {
+                    self.log('error', `Failed to lock front panel buttons: ${err?.message ?? err}`);
+                }
+            },
+        },
+        lraud: {
+            name: 'LRAUD',
+            description: 'Enables or disables the analog audio output.',
+            options: [
+                {
+                    id: 'mode',
+                    type: 'dropdown',
+                    label: 'Mode',
+                    default: 'on',
+                    choices: [
+                        { id: 'on', label: 'On' },
+                        { id: 'off', label: 'Off' },
+                    ],
+                },
+            ],
+            callback: async (action) => {
+                const mode = action.options.mode;
+                if (mode === 'on') {
+                    self.log('info', 'Enables analog audio output');
+                    self.sendCommand('LRAUD on');
+                    return;
+                }
+                if (mode === 'off') {
+                    self.log('info', 'Disables analog audio output');
+                    self.sendCommand('LRAUD off');
+                    return;
+                }
+            },
+        },
+        power_status: {
             name: 'Get Power Status',
             description: 'Displays the power state of the unit',
             options: [],
@@ -137,6 +180,34 @@ export function UpdateActions(self) {
                 }
                 catch (err) {
                     self.log('error', `Failed to retrieve power status: ${err?.message ?? err}`);
+                }
+            },
+        },
+        reboot: {
+            name: 'Reboot',
+            description: 'Performs a soft reboot of the unit. All system settings are preserved.',
+            options: [],
+            callback: async () => {
+                try {
+                    self.sendCommand('Reboot');
+                    self.log('info', 'Rebooting the unit');
+                }
+                catch (err) {
+                    self.log('error', `Failed to reboot the unit: ${err?.message ?? err}`);
+                }
+            },
+        },
+        unlock: {
+            name: 'Front Panel Unlock',
+            description: 'Unlocks the buttons on the front panel of the unit',
+            options: [],
+            callback: async () => {
+                try {
+                    self.sendCommand('Unlock');
+                    self.log('info', 'Front panel buttons unlocked');
+                }
+                catch (err) {
+                    self.log('error', `Failed to unlock front panel buttons: ${err?.message ?? err}`);
                 }
             },
         },
