@@ -90,6 +90,31 @@ export function UpdateActions(self) {
                 }
             },
         },
+        input_status: {
+            name: 'Get Input Status',
+            description: 'Displays the connection status of each input on the unit (e.g., HDMI, DisplayPort, etc.)',
+            options: [],
+            callback: async () => {
+                try {
+                    self.log('info', 'Querying device for input status');
+                    self.sendCommand('InputStatus');
+                    const line = await self.waitForLine(/^InputStatus\s*([01]{4})$/i, 3000);
+                    const m = line.match(/^InputStatus\s*([01]{4})$/i);
+                    if (!m) {
+                        self.log('warn', `Unexpected input status response: ${line}`);
+                        return;
+                    }
+                    const bits = m[1];
+                    for (let i = 0; i < 4; i++) {
+                        const connected = bits.charAt(i) === '1';
+                        self.log('info', `Input ${i + 1} is ${connected ? 'connected.' : 'not connected.'}`);
+                    }
+                }
+                catch (err) {
+                    self.log('error', `Failed to retrieve input status: ${err?.message ?? err}`);
+                }
+            },
+        },
         get_power_status: {
             name: 'Get Power Status',
             description: 'Displays the power state of the unit',
