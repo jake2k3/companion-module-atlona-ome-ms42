@@ -22,7 +22,7 @@ export function GetConfigFields() {
             id: 'username',
             label: 'Username',
             width: 6,
-            default: 'admin'
+            default: 'admin',
         },
         {
             type: 'textinput',

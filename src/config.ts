@@ -26,11 +26,11 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 			default: 23,
 		},
 		{
-			type: 'textinput', 
+			type: 'textinput',
 			id: 'username',
 			label: 'Username',
 			width: 6,
-			default: 'admin'
+			default: 'admin',
 		},
 		{
 			type: 'textinput',

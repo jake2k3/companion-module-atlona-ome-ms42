@@ -28,6 +28,7 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 
 	private telnet: TelnetHelper | undefined
 	private receiveBuffer = ''
+	private authenticated = false
 	private pendingLineWaiters: PendingLineWaiter[] = []
 
 	constructor(internal: unknown) {
@@ -73,7 +74,8 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 		)
 		this.telnet = new TelnetHelper(this.config.host, this.config.port)
 		this.telnet.on('connect', () => {
-			this.updateStatus(InstanceStatus.Ok, 'Connected to OME-MS42')
+			this.authenticated = false
+			this.updateStatus(InstanceStatus.Connecting, 'Connected; awaiting authentication')
 			this.log('info', `Connected to OME-MS42 at ${this.config.host}:${this.config.port}`)
 			this.receiveBuffer = ''
 		})
@@ -93,6 +95,7 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 	private destroyConnection(): void {
 		this.telnet?.destroy()
 		this.telnet = undefined
+		this.authenticated = false
 		this.receiveBuffer = ''
 		for (const waiter of this.pendingLineWaiters) {
 			clearTimeout(waiter.timer)
@@ -131,6 +134,9 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 		const chunk = data.toString('utf8')
 		this.receiveBuffer += chunk
 
+		this.log('debug', `RX chunk: ${JSON.stringify(chunk)}`)
+		this.handleLoginPrompts()
+
 		const lines = this.receiveBuffer.split(/\r?\n/)
 		this.receiveBuffer = lines.pop() ?? ''
 
@@ -145,27 +151,59 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 				continue
 			}
 
-			if (line.includes('Username:')) {
-				this.sendCommand(this.config.username)
-				continue
-			}
-
-			if (line.includes('Password:')) {
-				this.sendCommand(this.config.password)
-				continue
-			}
-
 			if (line === 'Welcome to TELNET.') {
-				this.updateStatus(InstanceStatus.Ok)
-				this.log('info', 'Authenticated successfully')
+				if (!this.authenticated) {
+					this.authenticated = true
+					this.updateStatus(InstanceStatus.Ok, 'Authenticated')
+					this.log('info', 'Authenticated successfully')
+				}
 				continue
 			}
 		}
 	}
 
+	private handleLoginPrompts(): void {
+		let handled = true
+		while (handled) {
+			handled = false
+
+			if (this.receiveBuffer.includes('Username:')) {
+				this.sendRawCommand(this.config.username)
+				this.receiveBuffer = this.receiveBuffer.replace(/^[\s\S]*Username:/, '')
+				handled = true
+			}
+
+			if (this.receiveBuffer.includes('Password:')) {
+				this.sendRawCommand(this.config.password)
+				this.receiveBuffer = this.receiveBuffer.replace(/^[\s\S]*Password:/, '')
+				handled = true
+			}
+		}
+	}
+
+	private sendRawCommand(command: string): void {
+		if (!this.telnet?.isConnected) {
+			this.log('warn', `Cannot send raw command while disconnected: ${command}`)
+			return
+		}
+
+		const cleanCommand = command.replace(/[\r\n]+$/g, '')
+		if (!cleanCommand) {
+			return
+		}
+
+		this.log('debug', `Sending raw command: ${cleanCommand}`)
+		this.telnet.send(`${cleanCommand}\r`)
+	}
+
 	sendCommand(command: string): void {
 		if (!this.telnet?.isConnected) {
 			this.log('warn', `Cannot send command while disconnected: ${command}`)
+			return
+		}
+
+		if (!this.authenticated) {
+			this.log('warn', `Cannot send command before authentication: ${command}`)
 			return
 		}
 		const cleanCommand = command.replace(/[\r\n]+$/g, '')
