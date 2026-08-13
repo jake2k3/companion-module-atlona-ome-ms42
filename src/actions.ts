@@ -8,6 +8,7 @@ export type ActionsSchema = {
 	input_status: { options: Record<string, never> }
 	lock: { options: Record<string, never> }
 	lraud: { options: { mode: 'on' | 'off' } }
+	lraud_status: { options: Record<string, never> }
 	power_status: { options: Record<string, never> }
 	reboot: { options: Record<string, never> }
 	status: { options: Record<string, never> }
@@ -17,6 +18,7 @@ export type ActionsSchema = {
 	UsbVbusControl: { options: { mode: 'on' | 'off' } }
 	VOUTMute: { options: { output: '1' | '2'; mode: 'on' | 'off' } }
 	xY$: { options: { output: '1' | '2'; mode: 'on' | 'off' } }
+	xY$_status: { options: Record<string, never> }
 	xYAVxZ: { options: { input: '1' | '2' | '3' | '4'; output: '1' | '2' } }
 }
 
@@ -152,10 +154,10 @@ export function UpdateActions(self: ModuleInstance): void {
 					}
 
 					self.setVariableValues({
-						input1Connected: bits.charAt(0) === '1' ? 'connected' : 'not connected',
-						input2Connected: bits.charAt(1) === '1' ? 'connected' : 'not connected',
-						input3Connected: bits.charAt(2) === '1' ? 'connected' : 'not connected',
-						input4Connected: bits.charAt(3) === '1' ? 'connected' : 'not connected',
+						input1Connected: bits.charAt(0) === '1' ? 'connected' : 'not-connected',
+						input2Connected: bits.charAt(1) === '1' ? 'connected' : 'not-connected',
+						input3Connected: bits.charAt(2) === '1' ? 'connected' : 'not-connected',
+						input4Connected: bits.charAt(3) === '1' ? 'connected' : 'not-connected',
 					} as Partial<VariablesSchema>)
 				} catch (err: any) {
 					self.log('error', `Failed to retrieve input status: ${err?.message ?? err}`)
@@ -204,6 +206,32 @@ export function UpdateActions(self: ModuleInstance): void {
 					self.log('info', 'Analog audio output set to OFF')
 					self.sendCommand('LRAUD off')
 					return
+				}
+			},
+		},
+
+		lraud_status: {
+			name: 'Get Analog Audio Output Status',
+			description: 'Displays the status of the analog audio output',
+			options: [],
+			callback: async () => {
+				try {
+					self.log('info', 'Querying device for analog audio output status (LRAUD)')
+					self.sendCommand('LRAUD sta')
+
+					const line = await (self as any).waitForLine(/^(LRAUD on|LRAUD off)$/i, 3000)
+					const status = line.trim()
+					self.setVariableValues({ statusLRAUD: `${status}` } as Partial<VariablesSchema>)
+
+					if (status === 'LRAUD on') {
+						self.log('info', 'Analog audio output status is on.')
+					} else if (status === 'LRAUD off') {
+						self.log('info', 'Analog audio output status is off.')
+					} else {
+						self.log('warn', `Unexpected analog audio output response: ${line}`)
+					}
+				} catch (err: any) {
+					self.log('error', `Failed to retrieve analog audio output status: ${err?.message ?? err}`)
 				}
 			},
 		},
@@ -491,6 +519,39 @@ export function UpdateActions(self: ModuleInstance): void {
 					self.sendCommand(`x${output}$ ${mode}`)
 				} catch (err: any) {
 					self.log('error', `Failed to set video enablement: ${err?.message ?? err}`)
+				}
+			},
+		},
+
+		xY$_status: {
+			name: 'Get output enablement status',
+			description: 'Retrieves whether Outputs 1 and 2 are enabled',
+			options: [],
+			callback: async () => {
+				try {
+					self.sendCommand('x1$ sta')
+					const line1 = await (self as any).waitForLine(/^x1\$\s*(on|off)$/i, 3000)
+					const m1 = line1.match(/^x1\$\s*(on|off)$/i)
+					if (!m1) {
+						self.log('warn', `Unexpected response for x1$: ${line1}`)
+					}
+					const y = m1 ? m1[1].toLowerCase() : 'off'
+
+					self.sendCommand('x2$ sta')
+					const line2 = await (self as any).waitForLine(/^x2\$\s*(on|off)$/i, 3000)
+					const m2 = line2.match(/^x2\$\s*(on|off)$/i)
+					if (!m2) {
+						self.log('warn', `Unexpected response for x2$: ${line2}`)
+					}
+					const z = m2 ? m2[1].toLowerCase() : 'off'
+
+					self.log('info', `Output 1 is ${y.toUpperCase()} ; Output 2 is ${z.toUpperCase()}`)
+					self.setVariableValues({
+						output1Enabled: `${y}`,
+						output2Enabled: `${z}`,
+					} as Partial<VariablesSchema>)
+				} catch (err: any) {
+					self.log('error', `Failed to retrieve output enablement status: ${err?.message ?? err}`)
 				}
 			},
 		},
