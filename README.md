@@ -13,14 +13,14 @@ See [HELP.md](./companion/HELP.md) and [LICENSE](./LICENSE)
   - ~~LRAUD~~
   - PWOFF / PWON / ~~PWSTA~~
   - ~~Reboot~~
-  - Status
+  - ~~Status~~
   - Type / Version / IPCFG
-  - USBHostLogic
-  - USBHostRoute
-  - UsbVbusControl
-  - VOUTMute
-  - xY$
-  - xYAVxZ
+  - ~~USBHostLogic~~
+  - ~~USBHostRoute~~
+  - ~~UsbVbusControl~~
+  - ~~VOUTMute~~
+  - ~~xY$~~
+  - ~~xYAVxZ~~
 - Create local variables for storing API responses (eg. Power Status, I/O routing, etc)
 - Create intuitive variables for InputStatus (eg. USBC: Connected, DisplayPort: NotConnected)
 - Draft initial HELP.md document
