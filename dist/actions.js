@@ -147,12 +147,12 @@ export function UpdateActions(self) {
             callback: async (action) => {
                 const mode = action.options.mode;
                 if (mode === 'on') {
-                    self.log('info', 'Enables analog audio output');
+                    self.log('info', 'Analog audio output set to ON');
                     self.sendCommand('LRAUD on');
                     return;
                 }
                 if (mode === 'off') {
-                    self.log('info', 'Disables analog audio output');
+                    self.log('info', 'Analog audio output set to OFF');
                     self.sendCommand('LRAUD off');
                     return;
                 }
@@ -197,6 +197,36 @@ export function UpdateActions(self) {
                 }
             },
         },
+        status: {
+            name: 'Get XY Routing Status',
+            description: 'Displays which input is routed to which output on the unit.',
+            options: [],
+            callback: async () => {
+                try {
+                    self.log('info', 'Querying device for XY routing status');
+                    self.sendCommand('Status');
+                    const line = await self.waitForLine(/^x([1-4])AVx1\s*,\s*x([1-4])AVx2$/i, 3000);
+                    const m = line.match(/x([1-4])AVx1\s*,\s*x([1-4])AVx2/i);
+                    if (!m) {
+                        self.log('warn', `Unexpected XY routing response: ${line}`);
+                        return;
+                    }
+                    const y = m[1];
+                    const z = m[2];
+                    const names = {
+                        '1': 'USB-C',
+                        '2': 'DisplayPort',
+                        '3': 'HDMI 1',
+                        '4': 'HDMI 2',
+                    };
+                    self.log('info', `Input ${y} (${names[y]}) is patched to Output 1 - HDMI.`);
+                    self.log('info', `Input ${z} (${names[z]}) is patched to Output 2 - HDBaseT.`);
+                }
+                catch (err) {
+                    self.log('error', `Failed to retrieve input status: ${err?.message ?? err}`);
+                }
+            },
+        },
         unlock: {
             name: 'Front Panel Unlock',
             description: 'Unlocks the buttons on the front panel of the unit',
@@ -208,6 +238,242 @@ export function UpdateActions(self) {
                 }
                 catch (err) {
                     self.log('error', `Failed to unlock front panel buttons: ${err?.message ?? err}`);
+                }
+            },
+        },
+        USBHostLogic: {
+            name: 'USBHostLogic',
+            description: 'Sets the USB mode for the unit.',
+            options: [
+                {
+                    id: 'mode',
+                    type: 'dropdown',
+                    label: 'Mode',
+                    default: 'follow video',
+                    choices: [
+                        { id: 'follow usb', label: 'Follow USB' },
+                        { id: 'follow video', label: 'Follow Video' },
+                        { id: 'manual', label: 'Manual (See "USBHostRoute" Action)' },
+                    ],
+                },
+            ],
+            callback: async (action) => {
+                const mode = action.options.mode;
+                if (mode === 'follow usb') {
+                    self.log('info', 'USB mode set to Follow USB');
+                    self.sendCommand('USBHostLogic follow usb');
+                    return;
+                }
+                if (mode === 'follow video') {
+                    self.log('info', 'USB mode set to Follow Video');
+                    self.sendCommand('USBHostLogic follow video');
+                    return;
+                }
+                if (mode === 'manual') {
+                    self.log('info', 'USB mode set to Manual');
+                    self.sendCommand('USBHostLogic manual');
+                    return;
+                }
+            },
+        },
+        USBHostRoute: {
+            name: 'USBHostRoute',
+            description: 'Sets the routing state of the USB host.',
+            options: [
+                {
+                    id: 'mode',
+                    type: 'dropdown',
+                    label: 'Mode',
+                    default: 'C',
+                    choices: [
+                        { id: 'C', label: 'USB-C port' },
+                        { id: '1', label: 'USB Host 1' },
+                        { id: '2', label: 'USB Host 2' },
+                        { id: '3', label: 'HDBaseT Remote USB Host' },
+                    ],
+                },
+            ],
+            callback: async (action) => {
+                const mode = action.options.mode;
+                if (mode === 'C') {
+                    self.log('info', 'USB route set to USB-C port');
+                    self.sendCommand('USBHostRoute C');
+                    return;
+                }
+                if (mode === '1') {
+                    self.log('info', 'USB route set to USB Host 1');
+                    self.sendCommand('USBHostRoute 1');
+                    return;
+                }
+                if (mode === '2') {
+                    self.log('info', 'USB route set to USB Host 2');
+                    self.sendCommand('USBHostRoute 2');
+                    return;
+                }
+                if (mode === '3') {
+                    self.log('info', 'USB route set to Remote USB Host connected over HDBaseT');
+                    self.sendCommand('USBHostRoute 3');
+                    return;
+                }
+            },
+        },
+        UsbVbusControl: {
+            name: 'USB VBus Control',
+            description: 'Sets the USB Hub port to always provide power, or follow the presence of the connected USB host.',
+            options: [
+                {
+                    id: 'mode',
+                    type: 'dropdown',
+                    label: 'Mode',
+                    default: 'on',
+                    choices: [
+                        { id: 'on', label: 'Always High' },
+                        { id: 'off', label: 'Follow the presence of USB Host' },
+                    ],
+                },
+            ],
+            callback: async (action) => {
+                const mode = action.options.mode;
+                if (mode === 'on') {
+                    self.log('info', 'USB VBus power set to Always High');
+                    self.sendCommand('UsbVbusControl on');
+                    return;
+                }
+                if (mode === 'off') {
+                    self.log('info', 'USB VBus power set to Follow the presence of USB Host');
+                    self.sendCommand('UsbVbusControl off');
+                    return;
+                }
+            },
+        },
+        VOUTMute: {
+            name: 'VOUT Mute',
+            description: 'Mutes/unmutes the output volume for the specified output.',
+            options: [
+                {
+                    id: 'output',
+                    type: 'dropdown',
+                    label: 'Output',
+                    default: '1',
+                    choices: [
+                        { id: '1', label: '1 - HDMI' },
+                        { id: '2', label: '2 - HDBaseT' },
+                    ],
+                },
+                {
+                    id: 'mode',
+                    type: 'dropdown',
+                    label: 'State',
+                    default: 'on',
+                    choices: [
+                        { id: 'on', label: 'Mute' },
+                        { id: 'off', label: 'Unmute' },
+                    ],
+                },
+            ],
+            callback: async (action) => {
+                try {
+                    const output = action.options.output;
+                    const mode = action.options.mode;
+                    const names = {
+                        '1': 'HDMI',
+                        '2': 'HDBaseT',
+                    };
+                    self.log('info', `Output ${output} (${names[output]}) set to ${mode}`);
+                    self.sendCommand(`VOUTMute${output} ${mode}`);
+                }
+                catch (err) {
+                    self.log('error', `Failed to set Output volume mute: ${err?.message ?? err}`);
+                }
+            },
+        },
+        xY$: {
+            name: 'xY$',
+            description: 'Enables/disables video for the specified output.',
+            options: [
+                {
+                    id: 'output',
+                    type: 'dropdown',
+                    label: 'Output',
+                    default: '1',
+                    choices: [
+                        { id: '1', label: '1 - HDMI' },
+                        { id: '2', label: '2 - HDBaseT' },
+                    ],
+                },
+                {
+                    id: 'mode',
+                    type: 'dropdown',
+                    label: 'State',
+                    default: 'on',
+                    choices: [
+                        { id: 'on', label: 'Enable video' },
+                        { id: 'off', label: 'Disable video' },
+                    ],
+                },
+            ],
+            callback: async (action) => {
+                try {
+                    const output = action.options.output;
+                    const mode = action.options.mode;
+                    const names = {
+                        '1': 'HDMI',
+                        '2': 'HDBaseT',
+                    };
+                    self.log('info', `Output ${output} (${names[output]}) set to ${mode}`);
+                    self.sendCommand(`x${output}$ ${mode}`);
+                }
+                catch (err) {
+                    self.log('error', `Failed to set video enablement: ${err?.message ?? err}`);
+                }
+            },
+        },
+        xYAVxZ: {
+            name: 'Set XY Routing',
+            description: 'Sets which input (1-4) is patched to which output (1-2).',
+            options: [
+                {
+                    id: 'input',
+                    type: 'dropdown',
+                    label: 'Input',
+                    default: '1',
+                    choices: [
+                        { id: '1', label: '1 - USB-C' },
+                        { id: '2', label: '2 - DisplayPort' },
+                        { id: '3', label: '3 - HDMI 1' },
+                        { id: '4', label: '4 - HDMI 2' },
+                    ],
+                },
+                {
+                    id: 'output',
+                    type: 'dropdown',
+                    label: 'Output',
+                    default: '1',
+                    choices: [
+                        { id: '1', label: 'Output 1 - HDMI' },
+                        { id: '2', label: 'Output 2 - HDBaseT' },
+                    ],
+                },
+            ],
+            callback: async (action) => {
+                try {
+                    const input = action.options.input;
+                    const output = action.options.output;
+                    const names = {
+                        '1': 'USB-C',
+                        '2': 'DisplayPort',
+                        '3': 'HDMI 1',
+                        '4': 'HDMI 2',
+                    };
+                    if (!/^[1-4]$/.test(input) || !/^[1-2]$/.test(output)) {
+                        self.log('warn', `Invalid input/output selection: ${input}/${output}`);
+                        return;
+                    }
+                    self.log('info', `Routing Input ${input} (${names[input]}) to Output ${output}`);
+                    self.sendCommand(`x${input}AVx${output}`);
+                }
+                catch (err) {
+                    self.log('error', `Failed to set routing: ${err?.message ?? err}`);
                 }
             },
         },
