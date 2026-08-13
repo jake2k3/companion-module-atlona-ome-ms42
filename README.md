@@ -5,24 +5,7 @@ This Companion Module utilizes commands listed in the [Atlona AT-OME-MS42 API](h
 See [HELP.md](./companion/HELP.md) and [LICENSE](./LICENSE)
 
 ## To-Do's
-- Complete list of basic actions/status commands as listed in the API
-  - ~~Blink~~
-  - ~~DispBtn~~
-  - ~~InputStatus~~
-  - ~~Lock / Unlock~~
-  - ~~LRAUD~~
-  - PWOFF / PWON / ~~PWSTA~~
-  - ~~Reboot~~
-  - ~~Status~~
-  - Type / Version / IPCFG
-  - ~~USBHostLogic~~
-  - ~~USBHostRoute~~
-  - ~~UsbVbusControl~~
-  - ~~VOUTMute~~
-  - ~~xY$~~
-  - ~~xYAVxZ~~
 - Create local variables for storing API responses (eg. Power Status, I/O routing, etc)
-- Create intuitive variables for InputStatus (eg. USBC: Connected, DisplayPort: NotConnected)
 - Draft initial HELP.md document
 - Generate presets for most often used buttons
 
@@ -35,5 +18,5 @@ See [HELP.md](./companion/HELP.md) and [LICENSE](./LICENSE)
   - Mreset
   - OutHdmi5vKeep
   - RepCmdTime
-  - ReapeatCmd
+  - RepeatCmd
   - RS232zone
