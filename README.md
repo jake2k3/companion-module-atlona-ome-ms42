@@ -6,6 +6,8 @@ See [HELP.md](./companion/HELP.md) and [LICENSE](./LICENSE)
 
 ## To-Do's
 - Create local variables for storing API responses (eg. Power Status, I/O routing, etc)
+- Define feedback for XY routing, USB logic, etc
+- Change password config to secret-text field
 - Draft initial HELP.md document
 - Generate presets for most often used buttons
 

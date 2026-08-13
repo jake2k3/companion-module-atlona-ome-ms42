@@ -1,4 +1,5 @@
 import type ModuleInstance from './main.js'
+import type { VariablesSchema } from './variables.js'
 
 export type ActionsSchema = {
 	blink: { options: { mode: 'on' | 'off' | 'toggle' } }
@@ -65,6 +66,9 @@ export function UpdateActions(self: ModuleInstance): void {
 				} else {
 					self.log('warn', `Unexpected blink response: ${line}`)
 				}
+
+				// store the selected mode as a string variable
+				self.setVariableValues({ statusBlink: mode } as Partial<VariablesSchema>)
 			},
 		},
 
@@ -393,7 +397,7 @@ export function UpdateActions(self: ModuleInstance): void {
 		},
 
 		VOUTMute: {
-			name: 'VOUT Mute',
+			name: 'Output Volume Mute',
 			description: 'Mutes/unmutes the output volume for the specified output.',
 			options: [
 				{

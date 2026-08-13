@@ -43,6 +43,8 @@ export function UpdateActions(self) {
                 else {
                     self.log('warn', `Unexpected blink response: ${line}`);
                 }
+                // store the selected mode as a string variable
+                self.setVariableValues({ statusBlink: mode });
             },
         },
         display_button: {
@@ -354,7 +356,7 @@ export function UpdateActions(self) {
             },
         },
         VOUTMute: {
-            name: 'VOUT Mute',
+            name: 'Output Volume Mute',
             description: 'Mutes/unmutes the output volume for the specified output.',
             options: [
                 {
