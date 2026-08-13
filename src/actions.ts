@@ -132,9 +132,16 @@ export function UpdateActions(self: ModuleInstance): void {
 						return
 					}
 					const bits = m[1]
+					const names: Record<string, string> = {
+						'1': 'USB-C',
+						'2': 'DisplayPort',
+						'3': 'HDMI 3',
+						'4': 'HDMI 4',
+					}
 					for (let i = 0; i < 4; i++) {
 						const connected = bits.charAt(i) === '1'
-						self.log('info', `Input ${i + 1} is ${connected ? 'connected.' : 'not connected.'}`)
+						const idx = (i + 1).toString()
+						self.log('info', `Input ${i + 1} (${names[idx]}) is ${connected ? 'connected.' : 'not connected.'}`)
 					}
 				} catch (err: any) {
 					self.log('error', `Failed to retrieve input status: ${err?.message ?? err}`)
@@ -157,7 +164,7 @@ export function UpdateActions(self: ModuleInstance): void {
 		},
 
 		lraud: {
-			name: 'LRAUD',
+			name: 'Analog Audio Output',
 			description: 'Enables or disables the analog audio output.',
 			options: [
 				{
@@ -246,11 +253,11 @@ export function UpdateActions(self: ModuleInstance): void {
 					const names: Record<string, string> = {
 						'1': 'USB-C',
 						'2': 'DisplayPort',
-						'3': 'HDMI 1',
-						'4': 'HDMI 2',
+						'3': 'HDMI 3',
+						'4': 'HDMI 4',
 					}
-					self.log('info', `Input ${y} (${names[y]}) is patched to Output 1 - HDMI.`)
-					self.log('info', `Input ${z} (${names[z]}) is patched to Output 2 - HDBaseT.`)
+					self.log('info', `Input ${y} (${names[y]}) is patched to Output 1 (HDMI).`)
+					self.log('info', `Input ${z} (${names[z]}) is patched to Output 2 (HDBaseT).`)
 				} catch (err: any) {
 					self.log('error', `Failed to retrieve input status: ${err?.message ?? err}`)
 				}
@@ -272,7 +279,7 @@ export function UpdateActions(self: ModuleInstance): void {
 		},
 
 		USBHostLogic: {
-			name: 'USBHostLogic',
+			name: 'USB Host Logic',
 			description: 'Sets the USB mode for the unit.',
 			options: [
 				{
@@ -310,7 +317,7 @@ export function UpdateActions(self: ModuleInstance): void {
 		},
 
 		USBHostRoute: {
-			name: 'USBHostRoute',
+			name: 'USB Host Route',
 			description: 'Sets the routing state of the USB host.',
 			options: [
 				{
@@ -437,8 +444,8 @@ export function UpdateActions(self: ModuleInstance): void {
 					label: 'Output',
 					default: '1',
 					choices: [
-						{ id: '1', label: '1 - HDMI' },
-						{ id: '2', label: '2 - HDBaseT' },
+						{ id: '1', label: 'HDMI' },
+						{ id: '2', label: 'HDBaseT' },
 					],
 				},
 				{
@@ -470,7 +477,7 @@ export function UpdateActions(self: ModuleInstance): void {
 		},
 
 		xYAVxZ: {
-			name: 'Set XY Routing',
+			name: 'XY Routing',
 			description: 'Sets which input (1-4) is patched to which output (1-2).',
 			options: [
 				{
@@ -481,8 +488,8 @@ export function UpdateActions(self: ModuleInstance): void {
 					choices: [
 						{ id: '1', label: '1 - USB-C' },
 						{ id: '2', label: '2 - DisplayPort' },
-						{ id: '3', label: '3 - HDMI 1' },
-						{ id: '4', label: '4 - HDMI 2' },
+						{ id: '3', label: '3 - HDMI 3' },
+						{ id: '4', label: '4 - HDMI 4' },
 					],
 				},
 				{
@@ -491,8 +498,8 @@ export function UpdateActions(self: ModuleInstance): void {
 					label: 'Output',
 					default: '1',
 					choices: [
-						{ id: '1', label: 'Output 1 - HDMI' },
-						{ id: '2', label: 'Output 2 - HDBaseT' },
+						{ id: '1', label: '1 - HDMI' },
+						{ id: '2', label: '2 - HDBaseT' },
 					],
 				},
 			],
@@ -503,8 +510,8 @@ export function UpdateActions(self: ModuleInstance): void {
 					const names: Record<string, string> = {
 						'1': 'USB-C',
 						'2': 'DisplayPort',
-						'3': 'HDMI 1',
-						'4': 'HDMI 2',
+						'3': 'HDMI 3',
+						'4': 'HDMI 4',
 					}
 
 					if (!/^[1-4]$/.test(input) || !/^[1-2]$/.test(output)) {
