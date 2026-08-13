@@ -10,11 +10,15 @@ interface Logger {
 export class AtlonaProtocol {
 	private socket: TelnetHelper | undefined
 	private receiveBuffer = ''
+	private readonly password?: string
 
 	public constructor(
 		private readonly instance: Logger,
 		private readonly config: ModuleConfig,
-	) {}
+		password?: string,
+	) {
+		this.password = password
+	}
 
 	public connect(): void {
 		this.destroy()
@@ -83,7 +87,7 @@ export class AtlonaProtocol {
 		}
 
 		if (this.receiveBuffer.includes('Password:')) {
-			this.socket?.send(`${this.config.password}\r`)
+			this.socket?.send(`${this.password ?? ''}\r`)
 			this.receiveBuffer = ''
 		}
 	}

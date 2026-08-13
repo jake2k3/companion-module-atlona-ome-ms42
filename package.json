@@ -45,5 +45,12 @@
 			"yarn lint:raw --fix"
 		]
 	},
-	"packageManager": "yarn@4.17.0"
+	"packageManager": "yarn@4.17.0",
+	"files": [
+		"dist/",
+		"companion/",
+		"pkg/companion-module-atlona-ome-ms42/",
+		"LICENSE",
+		"README.md"
+	]
 }
