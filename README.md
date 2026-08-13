@@ -10,6 +10,7 @@ See [HELP.md](./companion/HELP.md) and [LICENSE](./LICENSE)
 - Change password config to secret-text field
 - Draft initial HELP.md document
 - Generate presets for most often used buttons
+- test if PWOFF closes the connection, or if unit can be subsequently sent PWON
 
 ## Possible?
 - Create a dropdown to allow selection from multiple OME models (SW-32 for starters), and show/hide actions based on selection

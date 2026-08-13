@@ -4,11 +4,9 @@ export class AtlonaProtocol {
     config;
     socket;
     receiveBuffer = '';
-    password;
-    constructor(instance, config, password) {
+    constructor(instance, config) {
         this.instance = instance;
         this.config = config;
-        this.password = password;
     }
     connect() {
         this.destroy();
@@ -60,7 +58,7 @@ export class AtlonaProtocol {
             return;
         }
         if (this.receiveBuffer.includes('Password:')) {
-            this.socket?.send(`${this.password ?? ''}\r`);
+            this.socket?.send(`${this.config.password}\r`);
             this.receiveBuffer = '';
         }
     }

@@ -1,3 +1,20 @@
-## Companion Module for Atlona Omega Series Matrix Switchers
+## Companion Module for Atlona Omega AT-OME-MS42
 
-Write some help for your users here!
+This Companion Module utilizes commands listed in the [Atlona AT-OME-MS42 API](https://ts.atlona.com/pdf/AT-OME-MS42_API.pdf) document. Other Atlona devices may use similar commands, though compatibilty cannot be verified for all models.
+
+The following commands have been tested to work on the AT-OME-MS42:
+- blink
+- DispBtn
+- InputStatus
+- Lock
+- LRAUD
+- PWSTA
+- Reboot
+- Status 
+- Unlock
+- USBHostLogic
+- USBHostRoute
+- UsbVbusControl
+- VOUTMute
+- xY$
+- xYAVxZ

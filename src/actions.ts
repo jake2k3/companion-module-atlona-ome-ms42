@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import type ModuleInstance from './main.js'
 import type { VariablesSchema } from './variables.js'
 
@@ -42,12 +43,14 @@ export function UpdateActions(self: ModuleInstance): void {
 				if (mode === 'on') {
 					self.log('info', 'Turning blink ON')
 					self.sendCommand('Blink on')
+					self.setVariableValues({ statusBlink: 'on' } as Partial<VariablesSchema>)
 					return
 				}
 
 				if (mode === 'off') {
 					self.log('info', 'Turning blink OFF')
 					self.sendCommand('Blink off')
+					self.setVariableValues({ statusBlink: 'off' } as Partial<VariablesSchema>)
 					return
 				}
 
@@ -60,15 +63,14 @@ export function UpdateActions(self: ModuleInstance): void {
 				if (status === 'Blink on') {
 					self.log('info', 'Blink is ON, turning OFF')
 					self.sendCommand('Blink off')
+					self.setVariableValues({ statusBlink: 'off' } as Partial<VariablesSchema>)
 				} else if (status === 'Blink off') {
 					self.log('info', 'Blink is OFF, turning ON')
 					self.sendCommand('Blink on')
+					self.setVariableValues({ statusBlink: 'on' } as Partial<VariablesSchema>)
 				} else {
 					self.log('warn', `Unexpected blink response: ${line}`)
 				}
-
-				// store the selected mode as a string variable
-				self.setVariableValues({ statusBlink: mode } as Partial<VariablesSchema>)
 			},
 		},
 
@@ -142,11 +144,19 @@ export function UpdateActions(self: ModuleInstance): void {
 						'3': 'HDMI 3',
 						'4': 'HDMI 4',
 					}
+
 					for (let i = 0; i < 4; i++) {
 						const connected = bits.charAt(i) === '1'
 						const idx = (i + 1).toString()
 						self.log('info', `Input ${i + 1} (${names[idx]}) is ${connected ? 'connected.' : 'not connected.'}`)
 					}
+
+					self.setVariableValues({
+						input1Connected: bits.charAt(0) === '1' ? 'connected' : 'not connected',
+						input2Connected: bits.charAt(1) === '1' ? 'connected' : 'not connected',
+						input3Connected: bits.charAt(2) === '1' ? 'connected' : 'not connected',
+						input4Connected: bits.charAt(3) === '1' ? 'connected' : 'not connected',
+					} as Partial<VariablesSchema>)
 				} catch (err: any) {
 					self.log('error', `Failed to retrieve input status: ${err?.message ?? err}`)
 				}
@@ -209,6 +219,7 @@ export function UpdateActions(self: ModuleInstance): void {
 
 					const line = await (self as any).waitForLine(/^(PWON|PWOFF)$/i, 3000)
 					const status = line.trim().toUpperCase()
+					self.setVariableValues({ statusPower: `${status}` } as Partial<VariablesSchema>)
 
 					if (status === 'PWON') {
 						self.log('info', 'Power status: ON (PWON)')
@@ -262,6 +273,10 @@ export function UpdateActions(self: ModuleInstance): void {
 					}
 					self.log('info', `Input ${y} (${names[y]}) is patched to Output 1 (HDMI).`)
 					self.log('info', `Input ${z} (${names[z]}) is patched to Output 2 (HDBaseT).`)
+					self.setVariableValues({
+						routeOutput1: `${y}`,
+						routeOutput2: `${z}`,
+					} as Partial<VariablesSchema>)
 				} catch (err: any) {
 					self.log('error', `Failed to retrieve input status: ${err?.message ?? err}`)
 				}
