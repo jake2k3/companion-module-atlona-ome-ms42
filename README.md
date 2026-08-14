@@ -6,14 +6,14 @@ This Companion Module utilizes commands listed in the [Atlona AT-OME-MS42 API](h
 
 See [HELP.md](./companion/HELP.md) and [LICENSE](./LICENSE)
 
-## Issues
-
-## To-Do's
+## To-Do Before 1.0.0 Release
 - Query device status on first connection to set initial state for all variables.
-- ~~test if PWOFF closes the connection, or if unit can be subsequently sent PWON~~
-- Define feedback for XY routing, USB logic, etc
+  - Send 'Type' and 'Version' queries in this sequence
 - Change password config to secret-text field
 - Draft initial HELP.md document
+
+## To-Do's After Release
+- Define feedback for XY routing, USB logic, etc
 - Generate presets for most often used buttons
 
 ## Possible?
