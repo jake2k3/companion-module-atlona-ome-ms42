@@ -24,7 +24,7 @@ export class AtlonaProtocol {
 		this.socket = new TelnetHelper(this.config.host, this.config.port)
 
 		this.socket.on('connect', () => {
-			this.instance.log('info', 'Connected to OME-MS42')
+			this.instance.log('info', 'Connected to AT-OME-MS42')
 			this.receiveBuffer = ''
 		})
 
@@ -97,6 +97,6 @@ export class AtlonaProtocol {
 			this.instance.log('info', 'Authentication successful')
 		}
 
-		this.instance.log('debug', `OME-MS42 response: ${line}`)
+		this.instance.log('debug', `AT-OME-MS42 response: ${line}`)
 	}
 }
