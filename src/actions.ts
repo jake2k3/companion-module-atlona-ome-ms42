@@ -9,14 +9,20 @@ export type ActionsSchema = {
 	lock: { options: Record<string, never> }
 	lraud: { options: { mode: 'on' | 'off' } }
 	lraud_status: { options: Record<string, never> }
+	pwon: { options: Record<string, never> }
+	pwoff: { options: Record<string, never> }
 	power_status: { options: Record<string, never> }
 	reboot: { options: Record<string, never> }
 	status: { options: Record<string, never> }
 	unlock: { options: Record<string, never> }
 	USBHostLogic: { options: { mode: 'follow usb' | 'follow video' | 'manual' } }
+	USBHostLogic_status: { options: Record<string, never> }
 	USBHostRoute: { options: { mode: 'C' | '1' | '2' | '3' } }
+	USBHostRoute_status: { options: Record<string, never> }
 	UsbVbusControl: { options: { mode: 'on' | 'off' } }
+	// UsbVbusControl_status: { options: Record<string, never> }
 	VOUTMute: { options: { output: '1' | '2'; mode: 'on' | 'off' } }
+	// VOUTMute_status: { options: Record<string, never> }
 	xY$: { options: { output: '1' | '2'; mode: 'on' | 'off' } }
 	xY$_status: { options: Record<string, never> }
 	xYAVxZ: { options: { input: '1' | '2' | '3' | '4'; output: '1' | '2' } }
@@ -236,6 +242,34 @@ export function UpdateActions(self: ModuleInstance): void {
 			},
 		},
 
+		pwoff: {
+			name: 'Power Off',
+			description: 'Turns the unit of',
+			options: [],
+			callback: async () => {
+				try {
+					self.sendCommand('PWOFF')
+					self.log('info', 'Unit powered off')
+				} catch (err: any) {
+					self.log('error', `Failed to power off the unit: ${err?.message ?? err}`)
+				}
+			},
+		},
+
+		pwon: {
+			name: 'Power On',
+			description: 'Turns the unit on',
+			options: [],
+			callback: async () => {
+				try {
+					self.sendCommand('PWON')
+					self.log('info', 'Unit powered on')
+				} catch (err: any) {
+					self.log('error', `Failed to power on the unit: ${err?.message ?? err}`)
+				}
+			},
+		},
+
 		power_status: {
 			name: 'Get Power Status',
 			description: 'Displays the power state of the unit',
@@ -363,6 +397,37 @@ export function UpdateActions(self: ModuleInstance): void {
 			},
 		},
 
+		USBHostLogic_status: {
+			name: 'Get USB Host Logic Status',
+			description: 'Displays the USB host logic status',
+			options: [],
+			callback: async () => {
+				try {
+					self.log('info', 'Querying device for USB host logic status')
+					self.sendCommand('USBHostLogic sta')
+
+					const line = await (self as any).waitForLine(
+						/^(USBHostLogic follow usb | USBHostLogic follow video | manual )$/i,
+						3000,
+					)
+					const status = line.trim()
+					self.setVariableValues({ statusUsbHostLogic: `${status}` } as Partial<VariablesSchema>)
+
+					if (status === 'USBHostLogic follow usb') {
+						self.log('info', 'USB host logic status: Follow USB')
+					} else if (status === 'USBHostLogic follow video') {
+						self.log('info', 'USB host logic status: Follow Video')
+					} else if (status === 'USBHostLogic manual') {
+						self.log('info', 'USB host logic status: Manual')
+					} else {
+						self.log('warn', `Unexpected USB host logic response: ${line}`)
+					}
+				} catch (err: any) {
+					self.log('error', `Failed to retrieve power status: ${err?.message ?? err}`)
+				}
+			},
+		},
+
 		USBHostRoute: {
 			name: 'USB Host Route',
 			description: 'Sets the routing state of the USB host.',
@@ -383,27 +448,57 @@ export function UpdateActions(self: ModuleInstance): void {
 			callback: async (action) => {
 				const mode = action.options.mode
 				if (mode === 'C') {
-					self.log('info', 'USB route set to USB-C port')
+					self.log('info', 'USB Host route set to USB-C port')
 					self.sendCommand('USBHostRoute C')
 					return
 				}
 
 				if (mode === '1') {
-					self.log('info', 'USB route set to USB Host 1')
+					self.log('info', 'USB Host route set to USB Host 1')
 					self.sendCommand('USBHostRoute 1')
 					return
 				}
 
 				if (mode === '2') {
-					self.log('info', 'USB route set to USB Host 2')
+					self.log('info', 'USB Host route set to USB Host 2')
 					self.sendCommand('USBHostRoute 2')
 					return
 				}
 
 				if (mode === '3') {
-					self.log('info', 'USB route set to Remote USB Host connected over HDBaseT')
+					self.log('info', 'USB Host route set to Remote USB Host connected over HDBaseT')
 					self.sendCommand('USBHostRoute 3')
 					return
+				}
+			},
+		},
+
+		USBHostRoute_status: {
+			name: 'Get USB Host Route Status',
+			description: 'Displays the USB host routing status',
+			options: [],
+			callback: async () => {
+				try {
+					self.log('info', 'Querying device for USB host routing status')
+					self.sendCommand('USBHostRoute sta')
+
+					const line = await (self as any).waitForLine(/^(C | 1 | 2 | 3 )$/i, 3000)
+					const status = line.trim()
+					self.setVariableValues({ statusUsbHostRoute: `${status}` } as Partial<VariablesSchema>)
+
+					if (status === 'USBHostRoute C') {
+						self.log('info', 'USB host route status: USB-C port')
+					} else if (status === 'USBHostRoute 1') {
+						self.log('info', 'USB host route status: USB Host 1')
+					} else if (status === 'USBHostRoute 2') {
+						self.log('info', 'USB host route status: USB Host 2')
+					} else if (status === 'USBHostRoute 3') {
+						self.log('info', 'USB host route status: HDBaseT Remote USB Host')
+					} else {
+						self.log('warn', `Unexpected USB host route response: ${line}`)
+					}
+				} catch (err: any) {
+					self.log('error', `Failed to retrieve power status: ${err?.message ?? err}`)
 				}
 			},
 		},
