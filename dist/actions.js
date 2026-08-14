@@ -49,7 +49,34 @@ export function UpdateActions(self) {
                 }
             },
         },
-        display_button: {
+        blink_status: {
+            name: 'Get Blink Status',
+            description: 'Displays the status of the blink function',
+            options: [],
+            callback: async () => {
+                try {
+                    self.log('info', 'Querying device for blink status');
+                    self.sendCommand('Blink sta');
+                    const line = await self.waitForLine(/^(Blink on|Blink off)$/i, 3000);
+                    const status = line.trim();
+                    if (status === 'Blink on') {
+                        self.log('info', 'Blink status is on.');
+                        self.setVariableValues({ statusBlink: 'on' });
+                    }
+                    else if (status === 'Blink off') {
+                        self.log('info', 'Blink status is off.');
+                        self.setVariableValues({ statusBlink: 'off' });
+                    }
+                    else {
+                        self.log('warn', `Unexpected blink response: ${line}`);
+                    }
+                }
+                catch (err) {
+                    self.log('error', `Failed to retrieve blink status: ${err?.message ?? err}`);
+                }
+            },
+        },
+        displayButton: {
             name: 'Display Button',
             description: 'Emulates pressing the DISPLAY button on the front panel.',
             options: [
@@ -91,6 +118,33 @@ export function UpdateActions(self) {
                 }
                 else {
                     self.log('warn', `Unexpected DISPLAY button response: ${line}`);
+                }
+            },
+        },
+        displayButton_status: {
+            name: 'Get DISPLAY Button Status',
+            description: 'Displays the status of the DISPLAY button',
+            options: [],
+            callback: async () => {
+                try {
+                    self.log('info', 'Querying device for DISPLAY button status');
+                    self.sendCommand('DispBtn sta');
+                    const line = await self.waitForLine(/^(DispBtn on|DispBtn off)$/i, 3000);
+                    const status = line.trim();
+                    if (status === 'DispBtn on') {
+                        self.log('info', 'DISPLAY button is on.');
+                        self.setVariableValues({ statusDisplayButton: 'on' });
+                    }
+                    else if (status === 'DispBtn off') {
+                        self.log('info', 'DISPLAY button is off.');
+                        self.setVariableValues({ statusDisplayButton: 'off' });
+                    }
+                    else {
+                        self.log('warn', `Unexpected DISPLAY button response: ${line}`);
+                    }
+                }
+                catch (err) {
+                    self.log('error', `Failed to retrieve DISPLAY button status: ${err?.message ?? err}`);
                 }
             },
         },
@@ -185,12 +239,13 @@ export function UpdateActions(self) {
                     self.sendCommand('LRAUD sta');
                     const line = await self.waitForLine(/^(LRAUD on|LRAUD off)$/i, 3000);
                     const status = line.trim();
-                    self.setVariableValues({ statusLRAUD: `${status}` });
                     if (status === 'LRAUD on') {
                         self.log('info', 'Analog audio output status is on.');
+                        self.setVariableValues({ statusLRAUD: 'on' });
                     }
                     else if (status === 'LRAUD off') {
                         self.log('info', 'Analog audio output status is off.');
+                        self.setVariableValues({ statusLRAUD: 'off' });
                     }
                     else {
                         self.log('warn', `Unexpected analog audio output response: ${line}`);
@@ -201,9 +256,65 @@ export function UpdateActions(self) {
                 }
             },
         },
+        outHdmi5vKeep: {
+            name: 'HDMI Output +5V',
+            description: 'Sets the HDMI Output +5V to Always On / On When Signal Present.',
+            options: [
+                {
+                    id: 'mode',
+                    type: 'dropdown',
+                    label: 'Mode',
+                    default: 'on',
+                    choices: [
+                        { id: 'on', label: 'Always On' },
+                        { id: 'off', label: 'On When Signal Present' },
+                    ],
+                },
+            ],
+            callback: async (action) => {
+                const mode = action.options.mode;
+                if (mode === 'on') {
+                    self.log('info', 'HDMI output +5V set to Always On');
+                    self.sendCommand('OutHdmi5vKeep on');
+                    return;
+                }
+                if (mode === 'off') {
+                    self.log('info', 'HDMI output +5V set to On When Signal Present');
+                    self.sendCommand('OutHdmi5vKeep off');
+                    return;
+                }
+            },
+        },
+        outHdmi5vKeep_status: {
+            name: 'Get HDMI Output +5V Status',
+            description: 'Displays whether the HDMI Output +5V is set to Always On or On When Signal Present.',
+            options: [],
+            callback: async () => {
+                try {
+                    self.log('info', 'Querying device for HDMI output +5V status (OutHdmi5vKeep)');
+                    self.sendCommand('OutHdmi5vKeep sta');
+                    const line = await self.waitForLine(/^(OutHdmi5vKeep on|OutHdmi5vKeep off)$/i, 3000);
+                    const status = line.trim();
+                    if (status === 'OutHdmi5vKeep on') {
+                        self.log('info', 'HDMI output +5V status is on.');
+                        self.setVariableValues({ statusOutHdmi5vKeep: 'on' });
+                    }
+                    else if (status === 'OutHdmi5vKeep off') {
+                        self.log('info', 'HDMI output +5V status is off.');
+                        self.setVariableValues({ statusOutHdmi5vKeep: 'off' });
+                    }
+                    else {
+                        self.log('warn', `Unexpected HDMI output +5V response: ${line}`);
+                    }
+                }
+                catch (err) {
+                    self.log('error', `Failed to retrieve HDMI output +5V status: ${err?.message ?? err}`);
+                }
+            },
+        },
         pwoff: {
             name: 'Power Off',
-            description: 'Turns the unit of',
+            description: 'Turns the unit off',
             options: [],
             callback: async () => {
                 try {
@@ -239,12 +350,13 @@ export function UpdateActions(self) {
                     self.sendCommand('PWSTA');
                     const line = await self.waitForLine(/^(PWON|PWOFF)$/i, 3000);
                     const status = line.trim().toUpperCase();
-                    self.setVariableValues({ statusPower: `${status}` });
                     if (status === 'PWON') {
                         self.log('info', 'Power status: ON (PWON)');
+                        self.setVariableValues({ statusPower: 'on' });
                     }
                     else if (status === 'PWOFF') {
                         self.log('info', 'Power status: OFF (PWOFF)');
+                        self.setVariableValues({ statusPower: 'off' });
                     }
                     else {
                         self.log('warn', `Unexpected power response: ${line}`);
@@ -338,16 +450,19 @@ export function UpdateActions(self) {
                 if (mode === 'follow usb') {
                     self.log('info', 'USB mode set to Follow USB');
                     self.sendCommand('USBHostLogic follow usb');
+                    self.setVariableValues({ statusUsbHostLogic: 'follow-usb' });
                     return;
                 }
                 if (mode === 'follow video') {
                     self.log('info', 'USB mode set to Follow Video');
                     self.sendCommand('USBHostLogic follow video');
+                    self.setVariableValues({ statusUsbHostLogic: 'follow-video' });
                     return;
                 }
                 if (mode === 'manual') {
                     self.log('info', 'USB mode set to Manual');
                     self.sendCommand('USBHostLogic manual');
+                    self.setVariableValues({ statusUsbHostLogic: 'manual' });
                     return;
                 }
             },
@@ -360,24 +475,26 @@ export function UpdateActions(self) {
                 try {
                     self.log('info', 'Querying device for USB host logic status');
                     self.sendCommand('USBHostLogic sta');
-                    const line = await self.waitForLine(/^(USBHostLogic follow usb | USBHostLogic follow video | manual )$/i, 3000);
+                    const line = await self.waitForLine(/^(USBHostLogic follow usb|USBHostLogic follow video|manual)$/i, 3000);
                     const status = line.trim();
-                    self.setVariableValues({ statusUsbHostLogic: `${status}` });
                     if (status === 'USBHostLogic follow usb') {
                         self.log('info', 'USB host logic status: Follow USB');
+                        self.setVariableValues({ statusUsbHostLogic: 'follow-usb' });
                     }
                     else if (status === 'USBHostLogic follow video') {
                         self.log('info', 'USB host logic status: Follow Video');
+                        self.setVariableValues({ statusUsbHostLogic: 'follow-video' });
                     }
                     else if (status === 'USBHostLogic manual') {
                         self.log('info', 'USB host logic status: Manual');
+                        self.setVariableValues({ statusUsbHostLogic: 'manual' });
                     }
                     else {
                         self.log('warn', `Unexpected USB host logic response: ${line}`);
                     }
                 }
                 catch (err) {
-                    self.log('error', `Failed to retrieve power status: ${err?.message ?? err}`);
+                    self.log('error', `Failed to retrieve USB host logic status: ${err?.message ?? err}`);
                 }
             },
         },
@@ -403,21 +520,25 @@ export function UpdateActions(self) {
                 if (mode === 'C') {
                     self.log('info', 'USB Host route set to USB-C port');
                     self.sendCommand('USBHostRoute C');
+                    self.setVariableValues({ statusUSBHostRoute: 'C' });
                     return;
                 }
                 if (mode === '1') {
                     self.log('info', 'USB Host route set to USB Host 1');
                     self.sendCommand('USBHostRoute 1');
+                    self.setVariableValues({ statusUSBHostRoute: '1' });
                     return;
                 }
                 if (mode === '2') {
                     self.log('info', 'USB Host route set to USB Host 2');
                     self.sendCommand('USBHostRoute 2');
+                    self.setVariableValues({ statusUSBHostRoute: '2' });
                     return;
                 }
                 if (mode === '3') {
                     self.log('info', 'USB Host route set to Remote USB Host connected over HDBaseT');
                     self.sendCommand('USBHostRoute 3');
+                    self.setVariableValues({ statusUSBHostRoute: '3' });
                     return;
                 }
             },
@@ -430,27 +551,30 @@ export function UpdateActions(self) {
                 try {
                     self.log('info', 'Querying device for USB host routing status');
                     self.sendCommand('USBHostRoute sta');
-                    const line = await self.waitForLine(/^(C | 1 | 2 | 3 )$/i, 3000);
+                    const line = await self.waitForLine(/^(USBHostRoute C|USBHostRoute 1|USBHostRoute 2|USBHostRoute 3)$/i, 3000);
                     const status = line.trim();
-                    self.setVariableValues({ statusUsbHostRoute: `${status}` });
                     if (status === 'USBHostRoute C') {
                         self.log('info', 'USB host route status: USB-C port');
+                        self.setVariableValues({ statusUSBHostRoute: 'C' });
                     }
                     else if (status === 'USBHostRoute 1') {
                         self.log('info', 'USB host route status: USB Host 1');
+                        self.setVariableValues({ statusUSBHostRoute: '1' });
                     }
                     else if (status === 'USBHostRoute 2') {
                         self.log('info', 'USB host route status: USB Host 2');
+                        self.setVariableValues({ statusUSBHostRoute: '2' });
                     }
                     else if (status === 'USBHostRoute 3') {
                         self.log('info', 'USB host route status: HDBaseT Remote USB Host');
+                        self.setVariableValues({ statusUSBHostRoute: '3' });
                     }
                     else {
                         self.log('warn', `Unexpected USB host route response: ${line}`);
                     }
                 }
                 catch (err) {
-                    self.log('error', `Failed to retrieve power status: ${err?.message ?? err}`);
+                    self.log('error', `Failed to retrieve USB host route status: ${err?.message ?? err}`);
                 }
             },
         },
@@ -474,18 +598,47 @@ export function UpdateActions(self) {
                 if (mode === 'on') {
                     self.log('info', 'USB VBus power set to Always High');
                     self.sendCommand('UsbVbusControl on');
+                    self.setVariableValues({ statusUsbVbusControl: 'on' });
                     return;
                 }
                 if (mode === 'off') {
                     self.log('info', 'USB VBus power set to Follow the presence of USB Host');
                     self.sendCommand('UsbVbusControl off');
+                    self.setVariableValues({ statusUsbVbusControl: 'off' });
                     return;
                 }
             },
         },
+        UsbVbusControl_status: {
+            name: 'Get USB VBus Control Status',
+            description: 'Displays the USB VBus control status',
+            options: [],
+            callback: async () => {
+                try {
+                    self.log('info', 'Querying device for USB VBus control status');
+                    self.sendCommand('UsbVbusControl sta');
+                    const line = await self.waitForLine(/^(UsbVbusControl on|UsbVbusControl off)$/i, 3000);
+                    const status = line.trim();
+                    if (status === 'UsbVbusControl on') {
+                        self.log('info', 'USB VBus control status: Always High (UsbVbusControl on)');
+                        self.setVariableValues({ statusUsbVbusControl: 'on' });
+                    }
+                    else if (status === 'UsbVbusControl off') {
+                        self.log('info', 'USB VBus control status: Follow the presence of USB Host (UsbVbusControl off)');
+                        self.setVariableValues({ statusUsbVbusControl: 'off' });
+                    }
+                    else {
+                        self.log('warn', `Unexpected UsbVbusControl status response: ${line}`);
+                    }
+                }
+                catch (err) {
+                    self.log('error', `Failed to retrieve UsbVbusControl status: ${err?.message ?? err}`);
+                }
+            },
+        },
         VOUTMute: {
-            name: 'Output Volume Mute',
-            description: 'Mutes/unmutes the output volume for the specified output.',
+            name: 'Output Audio Mute',
+            description: 'Mutes/unmutes the audio output for the HDMI or HDBaseT outputs.',
             options: [
                 {
                     id: 'output',
@@ -518,9 +671,51 @@ export function UpdateActions(self) {
                     };
                     self.log('info', `Output ${output} (${names[output]}) set to ${mode}`);
                     self.sendCommand(`VOUTMute${output} ${mode}`);
+                    self.setVariableValues({ [`statusVOUTMute${output}`]: mode });
                 }
                 catch (err) {
-                    self.log('error', `Failed to set Output volume mute: ${err?.message ?? err}`);
+                    self.log('error', `Failed to set audio output mute: ${err?.message ?? err}`);
+                }
+            },
+        },
+        VOUTMute_status: {
+            name: 'Get Output Volume Mute Status',
+            description: 'Displays the output volume mute status',
+            options: [],
+            callback: async () => {
+                try {
+                    self.log('info', 'Querying device for output volume mute status');
+                    self.sendCommand('VOUTMute1 sta');
+                    const line1 = await self.waitForLine(/^(VOUTMute1 on|VOUTMute1 off)$/i, 3000);
+                    const status1 = line1.trim();
+                    if (status1 === 'VOUTMute1 on') {
+                        self.log('info', 'Output 1 volume mute status: Muted (VOUTMute1 on)');
+                        self.setVariableValues({ statusVOUTMute1: 'on' });
+                    }
+                    else if (status1 === 'VOUTMute1 off') {
+                        self.log('info', 'Output 1 volume mute status: Unmuted (VOUTMute1 off)');
+                        self.setVariableValues({ statusVOUTMute1: 'off' });
+                    }
+                    else {
+                        self.log('warn', `Unexpected VOUTMute1 status response: ${line1}`);
+                    }
+                    self.sendCommand('VOUTMute2 sta');
+                    const line2 = await self.waitForLine(/^(VOUTMute2 on|VOUTMute2 off)$/i, 3000);
+                    const status2 = line2.trim();
+                    if (status2 === 'VOUTMute2 on') {
+                        self.log('info', 'Output 2 volume mute status: Muted (VOUTMute2 on)');
+                        self.setVariableValues({ statusVOUTMute2: 'on' });
+                    }
+                    else if (status2 === 'VOUTMute2 off') {
+                        self.log('info', 'Output 2 volume mute status: Unmuted (VOUTMute2 off)');
+                        self.setVariableValues({ statusVOUTMute2: 'off' });
+                    }
+                    else {
+                        self.log('warn', `Unexpected VOUTMute2 status response: ${line2}`);
+                    }
+                }
+                catch (err) {
+                    self.log('error', `Failed to retrieve VOUTMute status: ${err?.message ?? err}`);
                 }
             },
         },

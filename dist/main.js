@@ -44,12 +44,12 @@ export default class ModuleInstance extends InstanceBase {
             return;
         }
         this.updateStatus(InstanceStatus.Connecting);
-        this.log('info', `Attempting initial Telnet connection to ${this.config.host}:${this.config.port} with build 2026-08-13`);
+        this.log('info', `Attempting initial Telnet connection to ${this.config.host}:${this.config.port}`);
         this.telnet = new TelnetHelper(this.config.host, this.config.port);
         this.telnet.on('connect', () => {
             this.authenticated = false;
             this.updateStatus(InstanceStatus.Connecting, 'Connected; awaiting authentication');
-            this.log('info', `Connected to OME-MS42 at ${this.config.host}:${this.config.port}`);
+            this.log('info', `Connected to AT-OME-MS42 at ${this.config.host}:${this.config.port}`);
             this.receiveBuffer = '';
         });
         this.telnet.on('data', (data) => {
@@ -60,7 +60,7 @@ export default class ModuleInstance extends InstanceBase {
             this.updateStatus(InstanceStatus.ConnectionFailure, error.message);
         });
         this.telnet.on('end', () => {
-            this.log('info', 'Connection to OME-MS42 closed');
+            this.log('info', 'Connection to AT-OME-MS42 closed');
             this.updateStatus(InstanceStatus.Disconnected, 'Connection closed');
         });
     }

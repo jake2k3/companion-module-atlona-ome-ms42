@@ -6,10 +6,11 @@ This Companion Module utilizes commands listed in the [Atlona AT-OME-MS42 API](h
 
 See [HELP.md](./companion/HELP.md) and [LICENSE](./LICENSE)
 
+## Issues
+
 ## To-Do's
-- Create local variables for storing API responses (eg. Power Status, I/O routing, etc)
 - Query device status on first connection to set initial state for all variables.
-- test if PWOFF closes the connection, or if unit can be subsequently sent PWON
+- ~~test if PWOFF closes the connection, or if unit can be subsequently sent PWON~~
 - Define feedback for XY routing, USB logic, etc
 - Change password config to secret-text field
 - Draft initial HELP.md document
@@ -22,7 +23,6 @@ See [HELP.md](./companion/HELP.md) and [LICENSE](./LICENSE)
   - IPDHCP
   - IPStatic
   - Mreset
-  - OutHdmi5vKeep
   - RepCmdTime
   - RepeatCmd
   - RS232zone
