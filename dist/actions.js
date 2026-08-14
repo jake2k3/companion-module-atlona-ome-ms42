@@ -201,6 +201,34 @@ export function UpdateActions(self) {
                 }
             },
         },
+        pwoff: {
+            name: 'Power Off',
+            description: 'Turns the unit of',
+            options: [],
+            callback: async () => {
+                try {
+                    self.sendCommand('PWOFF');
+                    self.log('info', 'Unit powered off');
+                }
+                catch (err) {
+                    self.log('error', `Failed to power off the unit: ${err?.message ?? err}`);
+                }
+            },
+        },
+        pwon: {
+            name: 'Power On',
+            description: 'Turns the unit on',
+            options: [],
+            callback: async () => {
+                try {
+                    self.sendCommand('PWON');
+                    self.log('info', 'Unit powered on');
+                }
+                catch (err) {
+                    self.log('error', `Failed to power on the unit: ${err?.message ?? err}`);
+                }
+            },
+        },
         power_status: {
             name: 'Get Power Status',
             description: 'Displays the power state of the unit',
@@ -324,6 +352,35 @@ export function UpdateActions(self) {
                 }
             },
         },
+        USBHostLogic_status: {
+            name: 'Get USB Host Logic Status',
+            description: 'Displays the USB host logic status',
+            options: [],
+            callback: async () => {
+                try {
+                    self.log('info', 'Querying device for USB host logic status');
+                    self.sendCommand('USBHostLogic sta');
+                    const line = await self.waitForLine(/^(USBHostLogic follow usb | USBHostLogic follow video | manual )$/i, 3000);
+                    const status = line.trim();
+                    self.setVariableValues({ statusUsbHostLogic: `${status}` });
+                    if (status === 'USBHostLogic follow usb') {
+                        self.log('info', 'USB host logic status: Follow USB');
+                    }
+                    else if (status === 'USBHostLogic follow video') {
+                        self.log('info', 'USB host logic status: Follow Video');
+                    }
+                    else if (status === 'USBHostLogic manual') {
+                        self.log('info', 'USB host logic status: Manual');
+                    }
+                    else {
+                        self.log('warn', `Unexpected USB host logic response: ${line}`);
+                    }
+                }
+                catch (err) {
+                    self.log('error', `Failed to retrieve power status: ${err?.message ?? err}`);
+                }
+            },
+        },
         USBHostRoute: {
             name: 'USB Host Route',
             description: 'Sets the routing state of the USB host.',
@@ -344,24 +401,56 @@ export function UpdateActions(self) {
             callback: async (action) => {
                 const mode = action.options.mode;
                 if (mode === 'C') {
-                    self.log('info', 'USB route set to USB-C port');
+                    self.log('info', 'USB Host route set to USB-C port');
                     self.sendCommand('USBHostRoute C');
                     return;
                 }
                 if (mode === '1') {
-                    self.log('info', 'USB route set to USB Host 1');
+                    self.log('info', 'USB Host route set to USB Host 1');
                     self.sendCommand('USBHostRoute 1');
                     return;
                 }
                 if (mode === '2') {
-                    self.log('info', 'USB route set to USB Host 2');
+                    self.log('info', 'USB Host route set to USB Host 2');
                     self.sendCommand('USBHostRoute 2');
                     return;
                 }
                 if (mode === '3') {
-                    self.log('info', 'USB route set to Remote USB Host connected over HDBaseT');
+                    self.log('info', 'USB Host route set to Remote USB Host connected over HDBaseT');
                     self.sendCommand('USBHostRoute 3');
                     return;
+                }
+            },
+        },
+        USBHostRoute_status: {
+            name: 'Get USB Host Route Status',
+            description: 'Displays the USB host routing status',
+            options: [],
+            callback: async () => {
+                try {
+                    self.log('info', 'Querying device for USB host routing status');
+                    self.sendCommand('USBHostRoute sta');
+                    const line = await self.waitForLine(/^(C | 1 | 2 | 3 )$/i, 3000);
+                    const status = line.trim();
+                    self.setVariableValues({ statusUsbHostRoute: `${status}` });
+                    if (status === 'USBHostRoute C') {
+                        self.log('info', 'USB host route status: USB-C port');
+                    }
+                    else if (status === 'USBHostRoute 1') {
+                        self.log('info', 'USB host route status: USB Host 1');
+                    }
+                    else if (status === 'USBHostRoute 2') {
+                        self.log('info', 'USB host route status: USB Host 2');
+                    }
+                    else if (status === 'USBHostRoute 3') {
+                        self.log('info', 'USB host route status: HDBaseT Remote USB Host');
+                    }
+                    else {
+                        self.log('warn', `Unexpected USB host route response: ${line}`);
+                    }
+                }
+                catch (err) {
+                    self.log('error', `Failed to retrieve power status: ${err?.message ?? err}`);
                 }
             },
         },
