@@ -13,7 +13,7 @@ export class AtlonaProtocol {
         this.instance.updateStatus(InstanceStatus.Connecting);
         this.socket = new TelnetHelper(this.config.host, this.config.port);
         this.socket.on('connect', () => {
-            this.instance.log('info', 'Connected to OME-MS42');
+            this.instance.log('info', 'Connected to AT-OME-MS42');
             this.receiveBuffer = '';
         });
         this.socket.on('data', (data) => {
@@ -69,7 +69,7 @@ export class AtlonaProtocol {
         if (line.includes('Welcome to TELNET.')) {
             this.instance.log('info', 'Authentication successful');
         }
-        this.instance.log('debug', `OME-MS42 response: ${line}`);
+        this.instance.log('debug', `AT-OME-MS42 response: ${line}`);
     }
 }
 //# sourceMappingURL=protocol.js.map

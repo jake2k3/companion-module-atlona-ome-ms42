@@ -101,7 +101,6 @@ export function UpdateActions(self: ModuleInstance): void {
 					if (status === 'Blink on') {
 						self.log('info', 'Blink status is on.')
 						self.setVariableValues({ statusBlink: 'on' } as Partial<VariablesSchema>)
-
 					} else if (status === 'Blink off') {
 						self.log('info', 'Blink status is off.')
 						self.setVariableValues({ statusBlink: 'off' } as Partial<VariablesSchema>)
@@ -177,7 +176,6 @@ export function UpdateActions(self: ModuleInstance): void {
 					if (status === 'DispBtn on') {
 						self.log('info', 'DISPLAY button is on.')
 						self.setVariableValues({ statusDisplayButton: 'on' } as Partial<VariablesSchema>)
-
 					} else if (status === 'DispBtn off') {
 						self.log('info', 'DISPLAY button is off.')
 						self.setVariableValues({ statusDisplayButton: 'off' } as Partial<VariablesSchema>)
@@ -291,7 +289,6 @@ export function UpdateActions(self: ModuleInstance): void {
 					if (status === 'LRAUD on') {
 						self.log('info', 'Analog audio output status is on.')
 						self.setVariableValues({ statusLRAUD: 'on' } as Partial<VariablesSchema>)
-
 					} else if (status === 'LRAUD off') {
 						self.log('info', 'Analog audio output status is off.')
 						self.setVariableValues({ statusLRAUD: 'off' } as Partial<VariablesSchema>)
@@ -349,7 +346,6 @@ export function UpdateActions(self: ModuleInstance): void {
 					if (status === 'OutHdmi5vKeep on') {
 						self.log('info', 'HDMI output +5V status is on.')
 						self.setVariableValues({ statusOutHdmi5vKeep: 'on' } as Partial<VariablesSchema>)
-
 					} else if (status === 'OutHdmi5vKeep off') {
 						self.log('info', 'HDMI output +5V status is off.')
 						self.setVariableValues({ statusOutHdmi5vKeep: 'off' } as Partial<VariablesSchema>)
@@ -405,7 +401,6 @@ export function UpdateActions(self: ModuleInstance): void {
 					if (status === 'PWON') {
 						self.log('info', 'Power status: ON (PWON)')
 						self.setVariableValues({ statusPower: 'on' } as Partial<VariablesSchema>)
-
 					} else if (status === 'PWOFF') {
 						self.log('info', 'Power status: OFF (PWOFF)')
 						self.setVariableValues({ statusPower: 'off' } as Partial<VariablesSchema>)
@@ -592,7 +587,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				if (mode === '2') {
 					self.log('info', 'USB Host route set to USB Host 2')
 					self.sendCommand('USBHostRoute 2')
-					self.setVariableValues({ statusUSBHostRoute: '2' } as Partial<VariablesSchema>)	
+					self.setVariableValues({ statusUSBHostRoute: '2' } as Partial<VariablesSchema>)
 					return
 				}
 

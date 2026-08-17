@@ -98,6 +98,128 @@ export default class ModuleInstance extends InstanceBase {
             this.pendingLineWaiters.push(pendingWaiter);
         });
     }
+    async queryInitialStatus() {
+        try {
+            // Get Device Type
+            this.sendCommand('Type');
+            const varType = await this.waitForLine(/^(AT-.*)/i, 3000);
+            this.log('debug', `Device type: ${varType}`);
+            // Get FW Version
+            this.sendCommand('Version');
+            const varVersion = await this.waitForLine(/^\d+\.\d+\.\d+$/, 3000);
+            this.log('debug', `Firmware version: ${varVersion}`);
+            // Get Power Status
+            this.sendCommand('PWSTA');
+            const queryPower = await this.waitForLine(/^(PWON|PWOFF)$/i, 3000);
+            const replyPower = queryPower.trim().toUpperCase();
+            let varPower = '';
+            if (replyPower === 'PWON') {
+                this.log('debug', 'Power status: ON (PWON)');
+                varPower = 'on';
+            }
+            else if (replyPower === 'PWOFF') {
+                this.log('debug', 'Power status: OFF (PWOFF)');
+                varPower = 'off';
+            }
+            else {
+                this.log('warn', `Unexpected power response: ${queryPower}`);
+            }
+            // Get Input Connection Status
+            this.sendCommand('InputStatus');
+            const queryInput = await this.waitForLine(/^InputStatus\s*([01]{4})$/i, 3000);
+            const m = queryInput.match(/^InputStatus\s*([01]{4})$/i);
+            if (!m) {
+                this.log('warn', `Unexpected input status response: ${queryInput}`);
+                return;
+            }
+            const bits = m[1];
+            const names = {
+                '1': 'USB-C',
+                '2': 'DisplayPort',
+                '3': 'HDMI 3',
+                '4': 'HDMI 4',
+            };
+            for (let i = 0; i < 4; i++) {
+                const connected = bits.charAt(i) === '1';
+                const idx = (i + 1).toString();
+                this.log('debug', `Input ${i + 1} (${names[idx]}) is ${connected ? 'connected.' : 'not connected.'}`);
+            }
+            const varInput1 = bits.charAt(0) === '1' ? 'connected' : 'not-connected';
+            const varInput2 = bits.charAt(1) === '1' ? 'connected' : 'not-connected';
+            const varInput3 = bits.charAt(2) === '1' ? 'connected' : 'not-connected';
+            const varInput4 = bits.charAt(3) === '1' ? 'connected' : 'not-connected';
+            // Get Output Enablement Status
+            this.sendCommand('x1$ sta');
+            const queryx1$ = await this.waitForLine(/^x1\$\s*(on|off)$/i, 3000);
+            const replyx1$ = queryx1$.match(/^x1\$\s*(on|off)$/i);
+            if (!replyx1$) {
+                this.log('warn', `Unexpected response for x1$: ${queryx1$}`);
+            }
+            const varx1$ = replyx1$ ? replyx1$[1].toLowerCase() : 'off';
+            this.sendCommand('x2$ sta');
+            const queryx2$ = await this.waitForLine(/^x2\$\s*(on|off)$/i, 3000);
+            const replyx2$ = queryx2$.match(/^x2\$\s*(on|off)$/i);
+            if (!replyx2$) {
+                this.log('warn', `Unexpected response for x2$: ${queryx2$}`);
+            }
+            const varx2$ = replyx2$ ? replyx2$[1].toLowerCase() : 'off';
+            this.log('debug', `Output 1 is ${varx1$.toUpperCase()} ; Output 2 is ${varx2$.toUpperCase()}`);
+            // Get Routing Status
+            // Get Blink Status
+            // Get LRAUD Status
+            // Get USB Host Status
+            // Get USB VBus Status
+            // Get VOUT Mute Status
+            this.sendCommand('VOUTMute1 sta');
+            const queryVOUTMute1 = await this.waitForLine(/^(VOUTMute1 on|VOUTMute1 off)$/i, 3000);
+            const replyVOUTMute1 = queryVOUTMute1.trim();
+            let varVOUTMute1 = '';
+            let varVOUTMute2 = '';
+            if (replyVOUTMute1 === 'VOUTMute1 on') {
+                this.log('debug', 'Output 1 volume mute status: Muted (VOUTMute1 on)');
+                varVOUTMute1 = 'on';
+            }
+            else if (replyVOUTMute1 === 'VOUTMute1 off') {
+                this.log('debug', 'Output 1 volume mute status: Unmuted (VOUTMute1 off)');
+                varVOUTMute1 = 'off';
+            }
+            else {
+                this.log('warn', `Unexpected VOUTMute1 status response: ${queryVOUTMute1}`);
+            }
+            this.sendCommand('VOUTMute2 sta');
+            const queryVOUTMute2 = await this.waitForLine(/^(VOUTMute2 on|VOUTMute2 off)$/i, 3000);
+            const replyVOUTMute2 = queryVOUTMute2.trim();
+            if (replyVOUTMute2 === 'VOUTMute2 on') {
+                this.log('debug', 'Output 2 volume mute status: Muted (VOUTMute2 on)');
+                varVOUTMute2 = 'on';
+            }
+            else if (replyVOUTMute2 === 'VOUTMute2 off') {
+                this.log('debug', 'Output 2 volume mute status: Unmuted (VOUTMute2 off)');
+                varVOUTMute2 = 'off';
+            }
+            else {
+                this.log('warn', `Unexpected VOUTMute2 status response: ${queryVOUTMute2}`);
+            }
+            // Update all Variables
+            this.setVariableValues({
+                type: `${varType}`,
+                version: `${varVersion}`,
+                statusPower: `${varPower}`,
+                input1Connected: `${varInput1}`,
+                input2Connected: `${varInput2}`,
+                input3Connected: `${varInput3}`,
+                input4Connected: `${varInput4}`,
+                output1Enabled: `${varx1$}`,
+                output2Enabled: `${varx2$}`,
+                statusVOUTMute1: `${varVOUTMute1}`,
+                statusVOUTMute2: `${varVOUTMute2}`,
+            });
+            this.log('info', 'Initial status query complete, variables updated.');
+        }
+        catch (err) {
+            this.log('error', `Failed to retrieve initial status: ${err?.message ?? err}`);
+        }
+    }
     handleData(data) {
         const chunk = data.toString('utf8');
         this.receiveBuffer += chunk;
@@ -118,6 +240,7 @@ export default class ModuleInstance extends InstanceBase {
                     this.authenticated = true;
                     this.updateStatus(InstanceStatus.Ok, 'Authenticated');
                     this.log('info', 'Authenticated successfully');
+                    void this.queryInitialStatus();
                 }
                 continue;
             }
