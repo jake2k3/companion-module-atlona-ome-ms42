@@ -60,11 +60,11 @@ export function UpdateActions(self) {
                     const line = await self.waitForLine(/^(Blink on|Blink off)$/i, 3000);
                     const status = line.trim();
                     if (status === 'Blink on') {
-                        self.log('info', 'Blink status is on.');
+                        self.log('info', 'Blink status is ON.');
                         self.setVariableValues({ statusBlink: 'on' });
                     }
                     else if (status === 'Blink off') {
-                        self.log('info', 'Blink status is off.');
+                        self.log('info', 'Blink status is OFF.');
                         self.setVariableValues({ statusBlink: 'off' });
                     }
                     else {
@@ -235,7 +235,7 @@ export function UpdateActions(self) {
             options: [],
             callback: async () => {
                 try {
-                    self.log('info', 'Querying device for analog audio output status (LRAUD)');
+                    self.log('info', 'Querying device for analog audio output status');
                     self.sendCommand('LRAUD sta');
                     const line = await self.waitForLine(/^(LRAUD on|LRAUD off)$/i, 3000);
                     const status = line.trim();
@@ -346,16 +346,16 @@ export function UpdateActions(self) {
             options: [],
             callback: async () => {
                 try {
-                    self.log('info', 'Querying device for power status (PWSTA)');
+                    self.log('info', 'Querying device for power status');
                     self.sendCommand('PWSTA');
                     const line = await self.waitForLine(/^(PWON|PWOFF)$/i, 3000);
                     const status = line.trim().toUpperCase();
                     if (status === 'PWON') {
-                        self.log('info', 'Power status: ON (PWON)');
+                        self.log('info', 'Power status: ON');
                         self.setVariableValues({ statusPower: 'on' });
                     }
                     else if (status === 'PWOFF') {
-                        self.log('info', 'Power status: OFF (PWOFF)');
+                        self.log('info', 'Power status: OFF');
                         self.setVariableValues({ statusPower: 'off' });
                     }
                     else {
@@ -620,11 +620,11 @@ export function UpdateActions(self) {
                     const line = await self.waitForLine(/^(UsbVbusControl on|UsbVbusControl off)$/i, 3000);
                     const status = line.trim();
                     if (status === 'UsbVbusControl on') {
-                        self.log('info', 'USB VBus control status: Always High (UsbVbusControl on)');
+                        self.log('info', 'USB VBus control status: Always High');
                         self.setVariableValues({ statusUsbVbusControl: 'on' });
                     }
                     else if (status === 'UsbVbusControl off') {
-                        self.log('info', 'USB VBus control status: Follow the presence of USB Host (UsbVbusControl off)');
+                        self.log('info', 'USB VBus control status: Follow the presence of USB Host');
                         self.setVariableValues({ statusUsbVbusControl: 'off' });
                     }
                     else {
@@ -689,11 +689,11 @@ export function UpdateActions(self) {
                     const line1 = await self.waitForLine(/^(VOUTMute1 on|VOUTMute1 off)$/i, 3000);
                     const status1 = line1.trim();
                     if (status1 === 'VOUTMute1 on') {
-                        self.log('info', 'Output 1 volume mute status: Muted (VOUTMute1 on)');
+                        self.log('info', 'Output 1 volume mute status: MUTED');
                         self.setVariableValues({ statusVOUTMute1: 'on' });
                     }
                     else if (status1 === 'VOUTMute1 off') {
-                        self.log('info', 'Output 1 volume mute status: Unmuted (VOUTMute1 off)');
+                        self.log('info', 'Output 1 volume mute status: UNMUTED');
                         self.setVariableValues({ statusVOUTMute1: 'off' });
                     }
                     else {
@@ -703,11 +703,11 @@ export function UpdateActions(self) {
                     const line2 = await self.waitForLine(/^(VOUTMute2 on|VOUTMute2 off)$/i, 3000);
                     const status2 = line2.trim();
                     if (status2 === 'VOUTMute2 on') {
-                        self.log('info', 'Output 2 volume mute status: Muted (VOUTMute2 on)');
+                        self.log('info', 'Output 2 volume mute status: MUTED');
                         self.setVariableValues({ statusVOUTMute2: 'on' });
                     }
                     else if (status2 === 'VOUTMute2 off') {
-                        self.log('info', 'Output 2 volume mute status: Unmuted (VOUTMute2 off)');
+                        self.log('info', 'Output 2 volume mute status: UNMUTED');
                         self.setVariableValues({ statusVOUTMute2: 'off' });
                     }
                     else {

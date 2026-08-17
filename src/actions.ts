@@ -99,10 +99,10 @@ export function UpdateActions(self: ModuleInstance): void {
 					const status = line.trim()
 
 					if (status === 'Blink on') {
-						self.log('info', 'Blink status is on.')
+						self.log('info', 'Blink status is ON.')
 						self.setVariableValues({ statusBlink: 'on' } as Partial<VariablesSchema>)
 					} else if (status === 'Blink off') {
-						self.log('info', 'Blink status is off.')
+						self.log('info', 'Blink status is OFF.')
 						self.setVariableValues({ statusBlink: 'off' } as Partial<VariablesSchema>)
 					} else {
 						self.log('warn', `Unexpected blink response: ${line}`)
@@ -280,7 +280,7 @@ export function UpdateActions(self: ModuleInstance): void {
 			options: [],
 			callback: async () => {
 				try {
-					self.log('info', 'Querying device for analog audio output status (LRAUD)')
+					self.log('info', 'Querying device for analog audio output status')
 					self.sendCommand('LRAUD sta')
 
 					const line = await (self as any).waitForLine(/^(LRAUD on|LRAUD off)$/i, 3000)
@@ -392,17 +392,17 @@ export function UpdateActions(self: ModuleInstance): void {
 			options: [],
 			callback: async () => {
 				try {
-					self.log('info', 'Querying device for power status (PWSTA)')
+					self.log('info', 'Querying device for power status')
 					self.sendCommand('PWSTA')
 
 					const line = await (self as any).waitForLine(/^(PWON|PWOFF)$/i, 3000)
 					const status = line.trim().toUpperCase()
 
 					if (status === 'PWON') {
-						self.log('info', 'Power status: ON (PWON)')
+						self.log('info', 'Power status: ON')
 						self.setVariableValues({ statusPower: 'on' } as Partial<VariablesSchema>)
 					} else if (status === 'PWOFF') {
-						self.log('info', 'Power status: OFF (PWOFF)')
+						self.log('info', 'Power status: OFF')
 						self.setVariableValues({ statusPower: 'off' } as Partial<VariablesSchema>)
 					} else {
 						self.log('warn', `Unexpected power response: ${line}`)
@@ -683,10 +683,10 @@ export function UpdateActions(self: ModuleInstance): void {
 					const status = line.trim()
 
 					if (status === 'UsbVbusControl on') {
-						self.log('info', 'USB VBus control status: Always High (UsbVbusControl on)')
+						self.log('info', 'USB VBus control status: Always High')
 						self.setVariableValues({ statusUsbVbusControl: 'on' } as Partial<VariablesSchema>)
 					} else if (status === 'UsbVbusControl off') {
-						self.log('info', 'USB VBus control status: Follow the presence of USB Host (UsbVbusControl off)')
+						self.log('info', 'USB VBus control status: Follow the presence of USB Host')
 						self.setVariableValues({ statusUsbVbusControl: 'off' } as Partial<VariablesSchema>)
 					} else {
 						self.log('warn', `Unexpected UsbVbusControl status response: ${line}`)
@@ -753,10 +753,10 @@ export function UpdateActions(self: ModuleInstance): void {
 					const status1 = line1.trim()
 
 					if (status1 === 'VOUTMute1 on') {
-						self.log('info', 'Output 1 volume mute status: Muted (VOUTMute1 on)')
+						self.log('info', 'Output 1 volume mute status: MUTED')
 						self.setVariableValues({ statusVOUTMute1: 'on' } as Partial<VariablesSchema>)
 					} else if (status1 === 'VOUTMute1 off') {
-						self.log('info', 'Output 1 volume mute status: Unmuted (VOUTMute1 off)')
+						self.log('info', 'Output 1 volume mute status: UNMUTED')
 						self.setVariableValues({ statusVOUTMute1: 'off' } as Partial<VariablesSchema>)
 					} else {
 						self.log('warn', `Unexpected VOUTMute1 status response: ${line1}`)
@@ -768,10 +768,10 @@ export function UpdateActions(self: ModuleInstance): void {
 					const status2 = line2.trim()
 
 					if (status2 === 'VOUTMute2 on') {
-						self.log('info', 'Output 2 volume mute status: Muted (VOUTMute2 on)')
+						self.log('info', 'Output 2 volume mute status: MUTED')
 						self.setVariableValues({ statusVOUTMute2: 'on' } as Partial<VariablesSchema>)
 					} else if (status2 === 'VOUTMute2 off') {
-						self.log('info', 'Output 2 volume mute status: Unmuted (VOUTMute2 off)')
+						self.log('info', 'Output 2 volume mute status: UNMUTED')
 						self.setVariableValues({ statusVOUTMute2: 'off' } as Partial<VariablesSchema>)
 					} else {
 						self.log('warn', `Unexpected VOUTMute2 status response: ${line2}`)

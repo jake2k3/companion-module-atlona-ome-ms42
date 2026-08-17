@@ -73,7 +73,7 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 		this.telnet.on('connect', () => {
 			this.authenticated = false
 			this.updateStatus(InstanceStatus.Connecting, 'Connected; awaiting authentication')
-			this.log('info', `Connected to AT-OME-MS42 at ${this.config.host}:${this.config.port}`)
+			this.log('info', `Connected to device at ${this.config.host}:${this.config.port}`)
 			this.receiveBuffer = ''
 		})
 		this.telnet.on('data', (data: Buffer) => {
@@ -84,7 +84,7 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 			this.updateStatus(InstanceStatus.ConnectionFailure, error.message)
 		})
 		this.telnet.on('end', () => {
-			this.log('info', 'Connection to AT-OME-MS42 closed')
+			this.log('info', `Connection to device at ${this.config.host}:${this.config.port} closed`)
 			this.updateStatus(InstanceStatus.Disconnected, 'Connection closed')
 		})
 	}
@@ -127,6 +127,7 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 		})
 	}
 
+	// Query the status of the device on connection and update variables accordingly
 	private async queryInitialStatus(): Promise<void> {
 		try {
 			// Get Device Type
@@ -146,10 +147,8 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 
 			let varPower = ''
 			if (replyPower === 'PWON') {
-				this.log('debug', 'Power status: ON (PWON)')
 				varPower = 'on'
 			} else if (replyPower === 'PWOFF') {
-				this.log('debug', 'Power status: OFF (PWOFF)')
 				varPower = 'off'
 			} else {
 				this.log('warn', `Unexpected power response: ${queryPower}`)
@@ -165,18 +164,7 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 				return
 			}
 			const bits = m[1]
-			const names: Record<string, string> = {
-				'1': 'USB-C',
-				'2': 'DisplayPort',
-				'3': 'HDMI 3',
-				'4': 'HDMI 4',
-			}
 
-			for (let i = 0; i < 4; i++) {
-				const connected = bits.charAt(i) === '1'
-				const idx = (i + 1).toString()
-				this.log('debug', `Input ${i + 1} (${names[idx]}) is ${connected ? 'connected.' : 'not connected.'}`)
-			}
 			const varInput1 = bits.charAt(0) === '1' ? 'connected' : 'not-connected'
 			const varInput2 = bits.charAt(1) === '1' ? 'connected' : 'not-connected'
 			const varInput3 = bits.charAt(2) === '1' ? 'connected' : 'not-connected'
@@ -199,30 +187,115 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 			}
 			const varx2$ = replyx2$ ? replyx2$[1].toLowerCase() : 'off'
 
-			this.log('debug', `Output 1 is ${varx1$.toUpperCase()} ; Output 2 is ${varx2$.toUpperCase()}`)
-
-			// Get Routing Status
+			// Get XY Routing Status
+			this.sendCommand('Status')
+			const queryRouting = await (this as any).waitForLine(/^x([1-4])AVx1\s*,\s*x([1-4])AVx2$/i, 3000)
+			const replyRouting = queryRouting.match(/x([1-4])AVx1\s*,\s*x([1-4])AVx2/i)
+			if (!replyRouting) {
+				this.log('warn', `Unexpected XY routing response: ${queryRouting}`)
+				return
+			}
+			const varRouteOutput1 = replyRouting[1]
+			const varRouteOutput2 = replyRouting[2]
 
 			// Get Blink Status
+			this.sendCommand('Blink sta')
+
+			const queryBlink = await (this as any).waitForLine(/^(Blink on|Blink off)$/i, 3000)
+			const replyBlink = queryBlink.trim()
+
+			let varBlink = ''
+			if (replyBlink === 'Blink on') {
+				varBlink = 'on'
+			} else if (replyBlink === 'Blink off') {
+				varBlink = 'off'
+			} else {
+				this.log('warn', `Unexpected blink response: ${queryBlink}`)
+			}
 
 			// Get LRAUD Status
+			this.sendCommand('LRAUD sta')
 
-			// Get USB Host Status
+			const queryLRAUD = await (this as any).waitForLine(/^(LRAUD on|LRAUD off)$/i, 3000)
+			const replyLRAUD = queryLRAUD.trim()
 
-			// Get USB VBus Status
+			let varLRAUD = ''
+			if (replyLRAUD === 'LRAUD on') {
+				varLRAUD = 'on'
+			} else if (replyLRAUD === 'LRAUD off') {
+				varLRAUD = 'off'
+			} else {
+				this.log('warn', `Unexpected analog audio output response: ${queryLRAUD}`)
+			}
+
+			// Get USB Host Logic Status
+			this.sendCommand('USBHostLogic sta')
+
+			const queryUsbLogic = await this.waitForLine(
+				/^(USBHostLogic follow usb|USBHostLogic follow video|manual)$/i,
+				3000,
+			)
+			const replyUsbLogic = queryUsbLogic.trim()
+
+			let varUsbLogic = ''
+			if (replyUsbLogic === 'USBHostLogic follow usb') {
+				varUsbLogic = 'follow-usb'
+			} else if (replyUsbLogic === 'USBHostLogic follow video') {
+				varUsbLogic = 'follow-video'
+			} else if (replyUsbLogic === 'USBHostLogic manual') {
+				varUsbLogic = 'manual'
+			} else {
+				this.log('warn', `Unexpected USB host logic response: ${queryUsbLogic}`)
+			}
+
+			// Get USB Host Route Status
+			this.sendCommand('USBHostRoute sta')
+
+			const queryUsbRoute = await this.waitForLine(
+				/^(USBHostRoute C|USBHostRoute 1|USBHostRoute 2|USBHostRoute 3)$/i,
+				3000,
+			)
+			const replyUsbRoute = queryUsbRoute.trim()
+
+			let varUsbRoute = ''
+			if (replyUsbRoute === 'USBHostRoute C') {
+				varUsbRoute = 'C'
+			} else if (replyUsbRoute === 'USBHostRoute 1') {
+				varUsbRoute = '1'
+			} else if (replyUsbRoute === 'USBHostRoute 2') {
+				varUsbRoute = '2'
+			} else if (replyUsbRoute === 'USBHostRoute 3') {
+				varUsbRoute = '3'
+			} else {
+				this.log('warn', `Unexpected USB host route response: ${queryUsbRoute}`)
+			}
+
+			// Get USB VBus Control Status
+			this.sendCommand('UsbVbusControl sta')
+
+			const queryUsbVbus = await this.waitForLine(/^(UsbVbusControl on|UsbVbusControl off)$/i, 3000)
+			const replyUsbVbus = queryUsbVbus.trim()
+
+			let varUsbVbus = ''
+			if (replyUsbVbus === 'UsbVbusControl on') {
+				varUsbVbus = 'on'
+			} else if (replyUsbVbus === 'UsbVbusControl off') {
+				varUsbVbus = 'off'
+			} else {
+				this.log('warn', `Unexpected UsbVbusControl status response: ${queryUsbVbus}`)
+			}
 
 			// Get VOUT Mute Status
 			this.sendCommand('VOUTMute1 sta')
+
 			const queryVOUTMute1 = await this.waitForLine(/^(VOUTMute1 on|VOUTMute1 off)$/i, 3000)
 			const replyVOUTMute1 = queryVOUTMute1.trim()
 
 			let varVOUTMute1 = ''
 			let varVOUTMute2 = ''
 			if (replyVOUTMute1 === 'VOUTMute1 on') {
-				this.log('debug', 'Output 1 volume mute status: Muted (VOUTMute1 on)')
 				varVOUTMute1 = 'on'
 			} else if (replyVOUTMute1 === 'VOUTMute1 off') {
-				this.log('debug', 'Output 1 volume mute status: Unmuted (VOUTMute1 off)')
 				varVOUTMute1 = 'off'
 			} else {
 				this.log('warn', `Unexpected VOUTMute1 status response: ${queryVOUTMute1}`)
@@ -233,25 +306,31 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 			const replyVOUTMute2 = queryVOUTMute2.trim()
 
 			if (replyVOUTMute2 === 'VOUTMute2 on') {
-				this.log('debug', 'Output 2 volume mute status: Muted (VOUTMute2 on)')
 				varVOUTMute2 = 'on'
 			} else if (replyVOUTMute2 === 'VOUTMute2 off') {
-				this.log('debug', 'Output 2 volume mute status: Unmuted (VOUTMute2 off)')
 				varVOUTMute2 = 'off'
 			} else {
 				this.log('warn', `Unexpected VOUTMute2 status response: ${queryVOUTMute2}`)
 			}
+
 			// Update all Variables
 			this.setVariableValues({
 				type: `${varType}`,
 				version: `${varVersion}`,
-				statusPower: `${varPower}`,
 				input1Connected: `${varInput1}`,
 				input2Connected: `${varInput2}`,
 				input3Connected: `${varInput3}`,
 				input4Connected: `${varInput4}`,
 				output1Enabled: `${varx1$}`,
 				output2Enabled: `${varx2$}`,
+				routeOutput1: `${varRouteOutput1}`,
+				routeOutput2: `${varRouteOutput2}`,
+				statusBlink: `${varBlink}`,
+				statusLRAUD: `${varLRAUD}`,
+				statusUsbHostLogic: `${varUsbLogic}`,
+				statusUsbHostRoute: `${varUsbRoute}`,
+				statusUsbVbusControl: `${varUsbVbus}`,
+				statusPower: `${varPower}`,
 				statusVOUTMute1: `${varVOUTMute1}`,
 				statusVOUTMute2: `${varVOUTMute2}`,
 			})
