@@ -1,5 +1,5 @@
 import { InstanceBase, InstanceStatus, TelnetHelper, type SomeCompanionConfigField } from '@companion-module/base'
-import { GetConfigFields, type ModuleConfig } from './config.js'
+import { GetConfigFields, type ModuleConfig, type ModuleSecrets } from './config.js'
 import { UpdateVariableDefinitions, type VariablesSchema } from './variables.js'
 import { UpgradeScripts } from './upgrades.js'
 import { UpdateActions, type ActionsSchema } from './actions.js'
@@ -8,7 +8,7 @@ import { UpdatePresets } from './presets.js'
 
 export type ModuleSchema = {
 	config: ModuleConfig
-	secrets: undefined
+	secrets: ModuleSecrets
 	actions: ActionsSchema
 	feedbacks: FeedbacksSchema
 	variables: VariablesSchema
@@ -25,6 +25,7 @@ type PendingLineWaiter = {
 
 export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 	config!: ModuleConfig // Setup in init()
+	secrets!: ModuleSecrets // Setup in init()
 
 	private telnet: TelnetHelper | undefined
 	private receiveBuffer = ''
@@ -35,8 +36,9 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 		super(internal)
 	}
 
-	async init(config: ModuleConfig): Promise<void> {
+	async init(config: ModuleConfig, _isFirstInit: boolean, secrets: ModuleSecrets): Promise<void> {
 		this.config = config
+		this.secrets = secrets
 		this.updateActions() // export actions
 		this.updateFeedbacks() // export feedbacks
 		this.updatePresets() // export Presets
@@ -51,8 +53,9 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 	}
 
 	// When user saves changes to the module config
-	async configUpdated(config: ModuleConfig): Promise<void> {
+	async configUpdated(config: ModuleConfig, secrets: ModuleSecrets): Promise<void> {
 		this.config = config
+		this.secrets = secrets
 		this.initConnection()
 	}
 
@@ -379,15 +382,25 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 			handled = false
 
 			if (this.receiveBuffer.includes('Username:')) {
-				this.sendRawCommand(this.config.username)
-				this.receiveBuffer = this.receiveBuffer.replace(/^[\s\S]*Username:/, '')
-				handled = true
+				if (this.config.username) {
+					this.sendRawCommand(this.config.username)
+					this.receiveBuffer = this.receiveBuffer.replace(/^[\s\S]*Username:/, '')
+					handled = true
+				} else {
+					this.log('error', 'Username prompt received but username is not configured')
+					return
+				}
 			}
 
 			if (this.receiveBuffer.includes('Password:')) {
-				this.sendRawCommand(this.config.password)
-				this.receiveBuffer = this.receiveBuffer.replace(/^[\s\S]*Password:/, '')
-				handled = true
+				if (this.secrets.password) {
+					this.sendRawCommand(this.secrets.password)
+					this.receiveBuffer = this.receiveBuffer.replace(/^[\s\S]*Password:/, '')
+					handled = true
+				} else {
+					this.log('error', 'Password prompt received but password is not configured')
+					return
+				}
 			}
 		}
 	}

@@ -25,7 +25,7 @@ export function GetConfigFields() {
             default: 'admin',
         },
         {
-            type: 'textinput', // to-do: change this to 'secret-text' type
+            type: 'secret-text',
             id: 'password',
             label: 'Password',
             width: 6,

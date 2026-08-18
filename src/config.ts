@@ -4,6 +4,9 @@ export type ModuleConfig = {
 	host: string
 	port: number
 	username: string
+}
+
+export type ModuleSecrets = {
 	password: string
 }
 
@@ -33,7 +36,7 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 			default: 'admin',
 		},
 		{
-			type: 'textinput', // to-do: change this to 'secret-text' type
+			type: 'secret-text',
 			id: 'password',
 			label: 'Password',
 			width: 6,

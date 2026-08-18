@@ -8,6 +8,7 @@ import { UpdatePresets } from './presets.js';
 export { UpgradeScripts };
 export default class ModuleInstance extends InstanceBase {
     config; // Setup in init()
+    secrets; // Setup in init()
     telnet;
     receiveBuffer = '';
     authenticated = false;
@@ -15,8 +16,9 @@ export default class ModuleInstance extends InstanceBase {
     constructor(internal) {
         super(internal);
     }
-    async init(config) {
+    async init(config, _isFirstInit, secrets) {
         this.config = config;
+        this.secrets = secrets;
         this.updateActions(); // export actions
         this.updateFeedbacks(); // export feedbacks
         this.updatePresets(); // export Presets
@@ -29,8 +31,9 @@ export default class ModuleInstance extends InstanceBase {
         this.log('debug', 'Module destroyed');
     }
     // When user saves changes to the module config
-    async configUpdated(config) {
+    async configUpdated(config, secrets) {
         this.config = config;
+        this.secrets = secrets;
         this.initConnection();
     }
     // Return config fields for web config
@@ -325,14 +328,26 @@ export default class ModuleInstance extends InstanceBase {
         while (handled) {
             handled = false;
             if (this.receiveBuffer.includes('Username:')) {
-                this.sendRawCommand(this.config.username);
-                this.receiveBuffer = this.receiveBuffer.replace(/^[\s\S]*Username:/, '');
-                handled = true;
+                if (this.config.username) {
+                    this.sendRawCommand(this.config.username);
+                    this.receiveBuffer = this.receiveBuffer.replace(/^[\s\S]*Username:/, '');
+                    handled = true;
+                }
+                else {
+                    this.log('error', 'Username prompt received but username is not configured');
+                    return;
+                }
             }
             if (this.receiveBuffer.includes('Password:')) {
-                this.sendRawCommand(this.config.password);
-                this.receiveBuffer = this.receiveBuffer.replace(/^[\s\S]*Password:/, '');
-                handled = true;
+                if (this.secrets.password) {
+                    this.sendRawCommand(this.secrets.password);
+                    this.receiveBuffer = this.receiveBuffer.replace(/^[\s\S]*Password:/, '');
+                    handled = true;
+                }
+                else {
+                    this.log('error', 'Password prompt received but password is not configured');
+                    return;
+                }
             }
         }
     }

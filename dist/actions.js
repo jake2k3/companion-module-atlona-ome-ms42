@@ -51,6 +51,7 @@ export function UpdateActions(self) {
         },
         blink_status: {
             name: 'Get Blink Status',
+            sortName: 'zzz Get Blink Status',
             description: 'Displays the status of the blink function',
             options: [],
             callback: async () => {
@@ -123,6 +124,7 @@ export function UpdateActions(self) {
         },
         displayButton_status: {
             name: 'Get DISPLAY Button Status',
+            sortName: 'zzz Get DISPLAY Button Status',
             description: 'Displays the status of the DISPLAY button',
             options: [],
             callback: async () => {
@@ -150,6 +152,7 @@ export function UpdateActions(self) {
         },
         input_status: {
             name: 'Get Input Status',
+            sortName: 'zzz Get Input Status',
             description: 'Displays the connection status of each input on the unit (e.g., HDMI, DisplayPort, etc.)',
             options: [],
             callback: async () => {
@@ -231,6 +234,7 @@ export function UpdateActions(self) {
         },
         lraud_status: {
             name: 'Get Analog Audio Output Status',
+            sortName: 'zzz Get Analog Audio Output Status',
             description: 'Displays the status of the analog audio output',
             options: [],
             callback: async () => {
@@ -287,6 +291,7 @@ export function UpdateActions(self) {
         },
         outHdmi5vKeep_status: {
             name: 'Get HDMI Output +5V Status',
+            sortName: 'zzz Get HDMI Output +5V Status',
             description: 'Displays whether the HDMI Output +5V is set to Always On or On When Signal Present.',
             options: [],
             callback: async () => {
@@ -342,6 +347,7 @@ export function UpdateActions(self) {
         },
         power_status: {
             name: 'Get Power Status',
+            sortName: 'zzz Get Power Status',
             description: 'Displays the power state of the unit',
             options: [],
             callback: async () => {
@@ -383,6 +389,7 @@ export function UpdateActions(self) {
         },
         status: {
             name: 'Get XY Routing Status',
+            sortName: 'zzz Get XY Routing Status',
             description: 'Displays which input is routed to which output on the unit.',
             options: [],
             callback: async () => {
@@ -469,6 +476,7 @@ export function UpdateActions(self) {
         },
         USBHostLogic_status: {
             name: 'Get USB Host Logic Status',
+            sortName: 'zzz Get USB Host Logic Status',
             description: 'Displays the USB host logic status',
             options: [],
             callback: async () => {
@@ -545,6 +553,7 @@ export function UpdateActions(self) {
         },
         USBHostRoute_status: {
             name: 'Get USB Host Route Status',
+            sortName: 'zzz Get USB Host Route Status',
             description: 'Displays the USB host routing status',
             options: [],
             callback: async () => {
@@ -611,6 +620,7 @@ export function UpdateActions(self) {
         },
         UsbVbusControl_status: {
             name: 'Get USB VBus Control Status',
+            sortName: 'zzz Get USB VBus Control Status',
             description: 'Displays the USB VBus control status',
             options: [],
             callback: async () => {
@@ -680,6 +690,7 @@ export function UpdateActions(self) {
         },
         VOUTMute_status: {
             name: 'Get Output Volume Mute Status',
+            sortName: 'zzz Get Output Volume Mute Status',
             description: 'Displays the output volume mute status',
             options: [],
             callback: async () => {
@@ -762,6 +773,7 @@ export function UpdateActions(self) {
         },
         xY$_status: {
             name: 'Get output enablement status',
+            sortName: 'zzz Get Output Enablement Status',
             description: 'Retrieves whether Outputs 1 and 2 are enabled',
             options: [],
             callback: async () => {

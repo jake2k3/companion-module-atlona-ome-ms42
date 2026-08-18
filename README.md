@@ -7,8 +7,8 @@ This Companion Module utilizes commands listed in the [Atlona AT-OME-MS42 API](h
 See [HELP.md](./companion/HELP.md) and [LICENSE](./LICENSE)
 
 ## To-Do Before 1.0.0 Release
-- Change password config to secret-text field
 - Draft initial HELP.md document
+- Clean up unnecessary files 
 
 ## To-Do's After Release
 - Define feedback for XY routing, USB logic, etc
