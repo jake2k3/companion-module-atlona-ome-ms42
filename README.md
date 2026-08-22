@@ -1,6 +1,6 @@
 # companion-module-atlona-ome-ms42
 
-Hello! This module is in pre-release development. Use at your own risk.
+Hello! Development of this module has moved to https://github.com/bitfocus/companion-module-atlona-omega. This repository has been left public for reference only.
 
 This Companion Module utilizes commands listed in the [Atlona AT-OME-MS42 API](https://ts.atlona.com/pdf/AT-OME-MS42_API.pdf) document. Other Atlona devices may use similar commands, though compatibilty cannot be verified for all models. 
 
